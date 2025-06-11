@@ -9,7 +9,7 @@ namespace PW2_Gruppo3.Models;
 public class Lathe : ProductionData
 {
     public string MachineState { get; set; } = string.Empty;
-    public int RotationSpeed { get; set; } // in rotation x minute
+    public int Rpm { get; set; } 
     public decimal SpindleTemperature { get; set; }
     public int CompletedItemsQuantity { get; set; }
 }

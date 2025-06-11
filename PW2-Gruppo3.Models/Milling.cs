@@ -9,7 +9,7 @@ namespace PW2_Gruppo3.Models;
 public class Milling : ProductionData
 {
     public int CompletedItemsQuantity { get; set; }
-    public decimal CycleDuration { get; set; } // DONE: modificare e mettere DECIMAL
+    public decimal CycleDuration { get; set; } 
     public decimal CuttingDepth { get; set; }
     public decimal Vibration { get; set; }
     public int UserAlerts { get; set; }

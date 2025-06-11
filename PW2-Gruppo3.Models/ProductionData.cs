@@ -9,7 +9,7 @@ namespace PW2_Gruppo3.Models;
 
 public abstract class ProductionData
 {
-    public Guid Uuid { get; set; }  // DONE: modificati tutti i campi ID in Guid, e di conseguenza anche le proprietà foreign key (MachineUuid, ad esempio)
+    public Guid Uuid { get; set; }  
     public Guid ItemUuid { get; set; }
     public bool IsFirst { get; set; } 
     public bool IsLast { get; set; }
@@ -21,9 +21,8 @@ public abstract class ProductionData
 
     // Foreign Keys
     public Guid BatchUuid { get; set; }
-    public int MachineUuid { get; set; }
+    public Guid SiteUuid { get; set; }
 
     // Proprietà di navigazione
     public Batch Batch { get; set; } = null!;
-    public Machine Machine { get; set; } = null!;
 }
