@@ -37,7 +37,11 @@ namespace Pw2_Gruppo3.DataGenerator;
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             var jsonString = JsonSerializer.Serialize(message, options);
-
+            
+            // TODO: creare un httpClient o simili che chiami l'endpoint di inserimento dei dati 
+            // e che il json generato, se volete spostare la generazione di dati in un service (come fatto precedentemente)
+            // potete farlo ma DEVE funzionare ed è un obiettivo SECONDARIO
+            
             Console.WriteLine(jsonString);
         }
         
@@ -46,7 +50,8 @@ namespace Pw2_Gruppo3.DataGenerator;
             Randomizer.Seed = new Random(); 
             var faker = new Faker("it");
             
-            bool isBlocked = (_generationCount % 100 == 0); 
+            bool isBlocked = faker.Random.Int(0, 100) == 99;
+            var site = faker.PickRandom(new[] { "Italia", "Vietnam", "Brasile" });
             
             var milling = new Milling()
             {
@@ -55,7 +60,7 @@ namespace Pw2_Gruppo3.DataGenerator;
                 CuttingDepth = faker.Random.Decimal(1, 10).ToString("0.00"), 
                 Vibration = faker.Random.Decimal(0.1m, 1.5m).ToString("0.000"), 
                 UserAlerts = faker.PickRandom(new[] { "Nessun avviso", "Rottura utensile", "Sovratemperatura motore", "Mancanza di lubrificante", "Errore di programmazione" }),
-                Site = faker.PickRandom(new[] {"Italia", "Vietnam", "Brasile"}),
+                Site = site,
                 TimeStampLocal = faker.Date.Recent(5).ToString("yyyy-MM-ddTHH:mm:ss"), 
                 TimeStampUtc = faker.Date.Recent(5).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss"), 
                 MachineBlockage = isBlocked.ToString(), 
@@ -69,8 +74,8 @@ namespace Pw2_Gruppo3.DataGenerator;
                 MachineState = faker.PickRandom(new[] { "Operativa", "Inattiva", "Manutenzione", "Guasto" }),
                 RotationSpeed = faker.Random.Int(1000, 3000).ToString(), 
                 SpindleTemperature = faker.Random.Decimal(30.0m, 60.0m).ToString("0.00"),
-                CompletedItems = faker.Random.Int(10, 100).ToString(), 
-                Site = faker.PickRandom(new[] {"Italia", "Vietnam", "Brasile"}),
+                CompletedItems = faker.Random.Int(10, 100).ToString(),
+                Site = site,
                 TimeStampLocal = faker.Date.Recent(5).ToString("yyyy-MM-ddTHH:mm:ss"),
                 TimeStampUtc = faker.Date.Recent(5).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss"),
                 MachineBlockage = isBlocked.ToString(), 
@@ -82,9 +87,9 @@ namespace Pw2_Gruppo3.DataGenerator;
             {
                 Machine = "Linea di Assemblaggio",
                 AverageStationTime = faker.Random.Decimal(15.0m, 45.0m).ToString("0.00"),
-                OperatorsNumber = faker.Random.Int(1, 5).ToString(), 
+                OperatorsNumber = faker.Random.Int(1, 3).ToString(), 
                 Faults = faker.PickRandom(new[] { "Nessun difetto", "Componente mancante", "Errore di montaggio", "Difetto materiale", "Danno estetico" }),
-                Site = faker.PickRandom(new[] {"Italia", "Vietnam", "Brasile"}),
+                Site = site,
                 TimeStampLocal = faker.Date.Recent(5).ToString("yyyy-MM-ddTHH:mm:ss"),
                 TimeStampUtc = faker.Date.Recent(5).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss"),
                 MachineBlockage = isBlocked.ToString(), 
@@ -95,11 +100,11 @@ namespace Pw2_Gruppo3.DataGenerator;
             var testLine = new TestLine()
             {
                 Machine = "Linea di Test",
-                TestResult = faker.PickRandom(new[] { "OK", "FAIL", "PASS" }),
+                TestResult = faker.PickRandom(new[] { "OK", "FAIL"}),
                 BoilerPressure = faker.Random.Decimal(1.0m, 5.0m).ToString("0.00"), 
                 BoilerTemperature = faker.Random.Decimal(80.0m, 110.0m).ToString("0.00"), 
                 EnergyConsumption = faker.Random.Decimal(1.0m, 10.0m).ToString("0.00"),
-                Site = faker.PickRandom(new[] {"Italia", "Vietnam", "Brasile"}),
+                Site = site,
                 TimeStampLocal = faker.Date.Recent(5).ToString("yyyy-MM-ddTHH:mm:ss"),
                 TimeStampUtc = faker.Date.Recent(5).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss"),
                 MachineBlockage = isBlocked.ToString(),
