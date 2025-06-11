@@ -11,6 +11,6 @@ public class Lathe
     public string TimeStampLocal { get; set; }
     public string TimeStampUtc { get; set; }
     public string MachineBlockage { get; set; }
-    public string BlockageCause { get; set; }
+    public string? BlockageCause { get; set; }
     public string LastMaintenance { get; set; }
 }
