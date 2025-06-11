@@ -14,8 +14,8 @@ public class Batch
     public int ItemQuantity { get; set; }
 
     // Foreign Keys
-    public int CustomerId { get; set; }
-    public int SiteId { get; set; }
+    public int CustomerUuid { get; set; }
+    public int SiteUuid { get; set; }
 
     // Proprietà di navigazione
     public Customer Customer { get; set; } = null!;

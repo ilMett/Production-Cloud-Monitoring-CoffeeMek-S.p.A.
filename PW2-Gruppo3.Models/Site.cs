@@ -8,7 +8,7 @@ namespace PW2_Gruppo3.Models;
 
 public class Site
 {
-    public int Id { get; set; }
+    public Guid Uuid { get; set; }
     public string Name { get; set; } = string.Empty;
 
     // Proprietà di navigazione: Un sito può avere molte macchine.

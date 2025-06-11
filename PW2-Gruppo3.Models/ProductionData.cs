@@ -9,19 +9,19 @@ namespace PW2_Gruppo3.Models;
 
 public abstract class ProductionData
 {
-    public int Id { get; set; }  // TODO: modificare tutti i campi ID in Guid (TUTTI!!!), così da unificare a questo formato
+    public Guid Uuid { get; set; }  // DONE: modificati tutti i campi ID in Guid, e di conseguenza anche le proprietà foreign key (MachineUuid, ad esempio)
     public Guid ItemUuid { get; set; }
     public bool IsFirst { get; set; } 
     public bool IsLast { get; set; }
-    public bool MachineBlockade { get; set; }
-    public string? BlockadeCause { get; set; } 
+    public bool MachineBlockage { get; set; }
+    public string? BlockageCause { get; set; } 
     public DateTime LastMaintenance { get; set; } 
     public DateTime TimestampLocal { get; set; }
     public DateTime TimestampUtc { get; set; }
 
     // Foreign Keys
     public Guid BatchUuid { get; set; }
-    public int MachineId { get; set; }
+    public int MachineUuid { get; set; }
 
     // Proprietà di navigazione
     public Batch Batch { get; set; } = null!;

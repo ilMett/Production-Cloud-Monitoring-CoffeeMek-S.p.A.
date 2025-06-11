@@ -8,7 +8,7 @@ namespace PW2_Gruppo3.Models;
 
 public class Customer
 {
-    public int Id { get; set; }
+    public Guid Uuid { get; set; }
     public string Company { get; set; } = string.Empty;
     public string VatCode { get; set; } = string.Empty;
     public string Iban { get; set; } = string.Empty;

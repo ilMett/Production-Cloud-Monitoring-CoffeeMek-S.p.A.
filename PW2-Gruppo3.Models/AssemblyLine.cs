@@ -8,7 +8,7 @@ namespace PW2_Gruppo3.Models;
 
 public class AssemblyLine : ProductionData
 {
-    public int AverageStationTime { get; set; } // TODO: modificare in DECIMAL
+    public decimal AverageStationTime { get; set; } // DONE: modificare in DECIMAL
     public int OperatorsNumber { get; set; }
     public string? Faults { get; set; } // Descrizione dei difetti, può essere nullo
 }

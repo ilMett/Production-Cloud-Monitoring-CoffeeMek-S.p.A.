@@ -10,12 +10,12 @@ namespace PW2_Gruppo3.Models;
 
 public class Machine
 {
-    public int Id { get; set; }
-    public string MachineId { get; set; } = string.Empty; 
+    public Guid Uuid { get; set; }
+    public string MachineUuid { get; set; } = string.Empty; 
     public string MachineType { get; set; } = string.Empty; 
 
     // Foreign Key per la tabella Site
-    public int SiteId { get; set; }
+    public int SiteUuid { get; set; }
 
     public Site Site { get; set; } = null!;
 
