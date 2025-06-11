@@ -13,16 +13,11 @@ namespace Pw2_Gruppo3.DataGenerator;
 
         public static void Main(string[] args)
         {
-            Console.WriteLine("Avvio della generazione dati pseudo-reali...");
-            Console.WriteLine("La generazione avverrà ogni 30 secondi. Premi un tasto per terminare.");
-
-            // Configura il timer
             _timer = new System.Timers.Timer(30000); 
             _timer.Elapsed += OnTimedEvent; 
             _timer.AutoReset = true; 
             _timer.Enabled = true; 
 
-            // Esegui la prima generazione immediatamente
             OnTimedEvent(null, null);
             
             // premere un tasto per finire l'esecuzione del progetto
@@ -30,7 +25,6 @@ namespace Pw2_Gruppo3.DataGenerator;
             
             _timer.Stop();
             _timer.Dispose();
-            Console.WriteLine("\nGenerazione dati terminata.");
         }
 
 
@@ -38,28 +32,21 @@ namespace Pw2_Gruppo3.DataGenerator;
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             _generationCount++;
-            Console.WriteLine($"\n--- Inizio Generazione Dati #{_generationCount} ({DateTime.Now}) ---");
 
-            // Chiama la funzione per generare i dati e ottenere l'oggetto Message
             var message = GenerateMessageData();
 
-            // Serializzazione della classe Message in formato JSON
-            Console.WriteLine("\nSerializzazione della classe Message in JSON...");
             var options = new JsonSerializerOptions { WriteIndented = true };
             var jsonString = JsonSerializer.Serialize(message, options);
 
-            Console.WriteLine("\n--- Output JSON Generato ---");
             Console.WriteLine(jsonString);
-            Console.WriteLine("--- Fine Generazione Dati ---");
         }
         
         private static Message GenerateMessageData()
         {
-            // Configura Faker per la lingua italiana
-            Randomizer.Seed = new Random(); // Per risultati riproducibili diversi ad ogni generazione
+            Randomizer.Seed = new Random(); 
             var faker = new Faker("it");
             
-            bool isBlocked = (_generationCount % 100 == 0); // ogni 100 generazioni la macchina si blocca
+            bool isBlocked = (_generationCount % 100 == 0); 
             
             var milling = new Milling()
             {
@@ -78,10 +65,10 @@ namespace Pw2_Gruppo3.DataGenerator;
 
             var lathe = new Lathe()
             {
-                Machine = "Tornio",
+                Machine = "Tornio automatico",
                 MachineState = faker.PickRandom(new[] { "Operativa", "Inattiva", "Manutenzione", "Guasto" }),
                 RotationSpeed = faker.Random.Int(1000, 3000).ToString(), 
-                SpindleTemperature = faker.Random.Decimal(30.0m, 60.0m).ToString("0.00"), // Esempio: 35.71
+                SpindleTemperature = faker.Random.Decimal(30.0m, 60.0m).ToString("0.00"),
                 CompletedItems = faker.Random.Int(10, 100).ToString(), 
                 Site = faker.PickRandom(new[] {"Italia", "Vietnam", "Brasile"}),
                 TimeStampLocal = faker.Date.Recent(5).ToString("yyyy-MM-ddTHH:mm:ss"),
