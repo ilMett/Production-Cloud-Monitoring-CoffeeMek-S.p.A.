@@ -35,26 +35,18 @@ public class Program
 
         var message = GenerateMessageData();
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var jsonString = JsonSerializer.Serialize(message, options);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        var jsonMessage = JsonSerializer.Serialize(message, options);
 
-            Console.WriteLine(jsonString);
+        Console.WriteLine(jsonMessage);
 
         //  invio del json generato all'endpoint del proj ApiService
         using (var httpClient = new HttpClient())
         {
-            var content = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json"); //  = il tipo di media = "ti sto inviando un json!"
-
-            var response = await httpClient.PostAsync("http://localhost:5580/api/v1/telemetry/machines", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Messaggio json inviato con successo ad ApiService!");
-            }
-            else
-            {
+            var response = await httpClient.PostAsync("http://localhost:5580/api/v1/telemetry/machines", new StringContent(jsonMessage, System.Text.Encoding.UTF8, "application/json"));
+            
+            if (!response.IsSuccessStatusCode)
                 Console.WriteLine($"Errore durante l'invio: {response.StatusCode}");
-            }
         }
     }
     
