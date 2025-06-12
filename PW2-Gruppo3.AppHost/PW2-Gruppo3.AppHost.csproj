@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PW2-Gruppo3.ApiService\PW2-Gruppo3.ApiService.csproj" />
+    <ProjectReference Include="..\PW2-Gruppo3.DataGenerator\PW2-Gruppo3.DataGenerator.csproj" />
     <ProjectReference Include="..\PW2-Gruppo3.Web\PW2-Gruppo3.Web.csproj" />
   </ItemGroup>
 

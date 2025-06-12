@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using PW2_Gruppo3.ApiService;
+using PW2_Gruppo3.ApiService.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.

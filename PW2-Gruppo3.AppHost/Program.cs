@@ -1,4 +1,5 @@
 var builder = DistributedApplication.CreateBuilder(args);
+builder.AddProject<Projects.PW2_Gruppo3_DataGenerator>("datagenerator");
 
 var cache = builder.AddRedis("cache");
 
