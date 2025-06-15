@@ -19,6 +19,10 @@ public class ProductionMonitoringContext : DbContext
     public DbSet<Lathe> Lathes { get; set; }
     public DbSet<AssemblyLine> AssemblyLines { get; set; }
     public DbSet<TestLine> TestLines { get; set; }
+    
+    // Coda per schedulazione lotti
+    public DbSet<BatchQueueItem> BatchQueueItems { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,9 +44,10 @@ public class ProductionMonitoringContext : DbContext
             .WithMany(s => s.Batches)
             .HasForeignKey(b => b.SiteId);
 
-        //modelBuilder.Entity<Customer>()
-        //    .ToTable("Customers")
-        //    .HasMany(c => c.Batches);
+        // FK verso BatchQueueItem
+        modelBuilder.Entity<BatchQueueItem>()
+            .HasIndex(q => q.Position);
+
 
         modelBuilder.Entity<AssemblyLine>().ToTable("AssemblyLines");
 
