@@ -28,6 +28,9 @@ builder.Services.AddScoped<IGenericService<Milling>, GenericService<Milling>>();
 builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>();
 builder.Services.AddScoped<IGenericService<Lathe>, GenericService<Lathe>>();
 
+// Cambia da Singleton a Scoped perché usa il DbContext
+builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
+
 
 builder.Services.AddDbContext<ProductionMonitoringContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("db")));
