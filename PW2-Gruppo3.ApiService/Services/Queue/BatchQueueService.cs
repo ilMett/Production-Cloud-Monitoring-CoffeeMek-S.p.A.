@@ -11,6 +11,7 @@ public interface IBatchQueueService
     Task<IEnumerable<Guid>> GetAllAsync();
     Task ReorderAsync(IEnumerable<Guid> newOrder);
     Task<int> GetCountAsync();
+    Task InitializeFromBatchQueueAsync();
 }
 
 public class BatchQueueService : IBatchQueueService
@@ -24,6 +25,37 @@ public class BatchQueueService : IBatchQueueService
     {
         _context = context;
     }
+    
+    public async Task InitializeFromBatchQueueAsync()
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var batchItems = await _context.BatchQueueItems
+                .OrderBy(b => b.Position)
+                .ToListAsync();
+
+            foreach (var batchItem in batchItems)
+            {
+                var queueItem = new BatchQueueItem()
+                {
+                    Id = Guid.NewGuid(),
+                    BatchUuid = batchItem.BatchUuid,
+                    Position = batchItem.Position,
+                    CreatedAt = batchItem.CreatedAt
+                };
+
+                _context.BatchQueueItems.Add(queueItem);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
 
     public async Task EnqueueAsync(Guid uuid)
     {

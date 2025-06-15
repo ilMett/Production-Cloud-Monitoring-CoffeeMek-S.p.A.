@@ -12,14 +12,14 @@ public static class DataGeneratorEndPoint
             .WithTags("DataGenerator")
             .WithOpenApi();
         
-        group.MapPost("/machines", SendTelemetryAsync)
+        group.MapPost("/machines", ReceiveTelemetryAsync)
             .WithName("SendTelemetry")
             .WithSummary("Send Telemetry Data");
         
         return builder;
     }
 
-    private static async Task<Results<Ok<Message>, NoContent>> SendTelemetryAsync(Message message)
+    private static async Task<Results<Ok<Message>, NoContent>> ReceiveTelemetryAsync(Message message)
     {
         // Creo il percorso per il file di log
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
