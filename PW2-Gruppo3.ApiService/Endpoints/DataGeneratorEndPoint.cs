@@ -1,6 +1,7 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
+using PW2_Gruppo3.ApiService.Services;
 using PW2_Gruppo3.DataGenerator;
+using System.Text.Json;
 
 namespace PW2_Gruppo3.ApiService;
 
@@ -21,6 +22,10 @@ public static class DataGeneratorEndPoint
 
     private static async Task<Results<Ok<Message>, NoContent>> SendTelemetryAsync(Message message)
     {
+        //  integrazione nell'endpoint della chiamata al service BatchAssociationService
+        var service = new BatchAssociationService();
+        service.ProcessTelemetryMessage(message); // Elabora e istanzia oggetti
+
         // Creo il percorso per il file di log
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         Directory.CreateDirectory(logPath);
