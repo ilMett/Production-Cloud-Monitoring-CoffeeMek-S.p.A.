@@ -5,13 +5,13 @@ using PW2_Gruppo3.Models;
 
 namespace PW2_Gruppo3.ApiService.Crud;
 
-public static class SiteEndPoint
+public static class SiteEndpoint
 {
-    public static IEndpointRouteBuilder MapSiteEndPoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapSiteEndpoint(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/crud");
+        var group = builder.MapGroup("/api/v1/crud");   //  qui la string prefix non dovrebbe finire con "/sites"??
 
-        group.MapGet("/sites", GetAllSites)
+        group.MapGet("/sites", GetAllSites) //  invece che ripeterlo qui ogni volta? STUPIDO IDIOTA!
             .WithName("GetSites")
             .WithOpenApi();
 

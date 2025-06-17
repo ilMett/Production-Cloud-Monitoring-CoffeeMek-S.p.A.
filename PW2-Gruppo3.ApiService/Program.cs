@@ -50,9 +50,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map of all EndPoints
-app.MapSiteEndPoint();
+app.MapSiteEndpoint();
+app.MapCustomerEndpoint();
 app.MapDefaultEndpoints();
-app.MapDataGeneratorEndPoint();
+app.MapDataGeneratorEndpoint();
 
 await app.RunAsync();
 
