@@ -49,9 +49,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Map of all EndPoints
-app.MapSiteEndpoint();
+// Map of all of the endpoints
+//app.MapAssemblyLineEndpoints();
 app.MapCustomerEndpoint();
+app.MapSiteEndpoint();
 app.MapDefaultEndpoints();
 app.MapDataGeneratorEndpoint();
 
