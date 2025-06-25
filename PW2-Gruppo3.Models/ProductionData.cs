@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -9,8 +10,9 @@ namespace PW2_Gruppo3.Models;
 
 public abstract class ProductionData
 {
-    public Guid Uuid { get; set; }  
-    public Guid ItemUuid { get; set; }
+    [Key]
+    public Guid Id { get; set; }  
+    public Guid ItemId { get; set; }
     public bool IsFirst { get; set; } 
     public bool IsLast { get; set; }
     public bool MachineBlockage { get; set; }
@@ -20,8 +22,8 @@ public abstract class ProductionData
     public DateTime TimestampUtc { get; set; }
 
     // Foreign Keys
-    public Guid BatchUuid { get; set; }
-    public Guid SiteUuid { get; set; }
+    public Guid BatchId { get; set; }
+    public Guid SiteId { get; set; }
 
     // Proprietà di navigazione
     public Batch Batch { get; set; } = null!;

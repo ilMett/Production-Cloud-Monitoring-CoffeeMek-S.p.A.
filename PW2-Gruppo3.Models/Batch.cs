@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -10,16 +11,16 @@ namespace PW2_Gruppo3.Models;
 
 public class Batch
 {
-    public Guid Uuid { get; set; } 
+    [Key]
+    public Guid Id { get; set; } 
     public int ItemQuantity { get; set; }
 
-    // Foreign Keys
-    public int CustomerUuid { get; set; }
-    public int SiteUuid { get; set; }
+    public Guid CustomerId { get; set; }
+    public Guid SiteId { get; set; }
 
-    // Proprietà di navigazione
-    public Customer Customer { get; set; } = null!;
-    public Site Site { get; set; } = null!;
+    // Foreign Keys
+    public Customer? Customer { get; set; }
+    public Site? Site { get; set; }
 
     // Proprietà di navigazione per i dati di produzione
     public ICollection<Milling> Millings { get; set; } = [];
