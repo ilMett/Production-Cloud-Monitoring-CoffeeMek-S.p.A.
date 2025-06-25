@@ -29,6 +29,8 @@ builder.Services.AddScoped<IGenericService<Milling>, GenericService<Milling>>();
 builder.Services.AddScoped<IGenericService<Site>, GenericService<Site>>();
 builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>();
 
+builder.Services.AddScoped<BatchAssociationService>();
+
 // BatchQueue services, Init of Batch queue
 builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
 builder.Services.AddHostedService<QueueInitializerHostedService>();
