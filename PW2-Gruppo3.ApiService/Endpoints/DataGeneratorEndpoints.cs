@@ -24,7 +24,8 @@ public static class DataGeneratorEndpoints
     {
         //  integrazione nell'endpoint della chiamata al service BatchAssociationService
         var service = new BatchAssociationService();
-        service.ProcessTelemetryMessage(message); // Elabora e istanzia oggetti
+        // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedMessage) e il messaggio inviato (DataGenerator.Models)
+        service.ProcessTelemetryMessage(message); 
 
         // Creo il percorso per il file di log
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
