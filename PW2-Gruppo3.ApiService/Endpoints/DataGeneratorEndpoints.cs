@@ -5,9 +5,9 @@ using System.Text.Json;
 
 namespace PW2_Gruppo3.ApiService;
 
-public static class DataGeneratorEndpoint
+public static class DataGeneratorEndpoints
 {
-    public static IEndpointRouteBuilder MapDataGeneratorEndpoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapDataGeneratorEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/api/v1/telemetry")// Raggruppo tutte le api inierenti allo stesso gruppo, non serve riscrivere tutto l'url
             .WithTags("DataGenerator")

@@ -5,9 +5,9 @@ using PW2_Gruppo3.Models;
 
 namespace PW2_Gruppo3.ApiService.Crud;
 
-public static class SiteEndpoint
+public static class SiteEndpoints
 {
-    public static IEndpointRouteBuilder MapSiteEndpoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapSiteEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/api/v1/crud");   //  qui la string prefix non dovrebbe finire con "/sites"??
 

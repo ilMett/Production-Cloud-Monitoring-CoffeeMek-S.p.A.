@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace PW2_Gruppo3.ApiService.Crud
 {
-    public static class CustomerEndpoint
+    public static class CustomerEndpoints
     {
         public static IEndpointRouteBuilder MapCustomerEndpoint(this IEndpointRouteBuilder builder)
         {
