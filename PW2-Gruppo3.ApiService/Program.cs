@@ -3,6 +3,7 @@ using OpenTelemetry;
 using PW2_Gruppo3.ApiService;
 using PW2_Gruppo3.ApiService.Crud;
 using PW2_Gruppo3.ApiService.Data;
+using PW2_Gruppo3.ApiService.Endpoints.Crud;
 using PW2_Gruppo3.ApiService.Services;
 using PW2_Gruppo3.Models;
 
@@ -20,13 +21,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register API services
+builder.Services.AddScoped<IGenericService<AssemblyLine>, GenericService<AssemblyLine>>();
 builder.Services.AddScoped<IGenericService<Batch>, GenericService<Batch>>();
 builder.Services.AddScoped<IGenericService<Customer>, GenericService<Customer>>();
-builder.Services.AddScoped<IGenericService<Site>, GenericService<Site>>();
-builder.Services.AddScoped<IGenericService<AssemblyLine>, GenericService<AssemblyLine>>();
-builder.Services.AddScoped<IGenericService<Milling>, GenericService<Milling>>();
-builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>();
 builder.Services.AddScoped<IGenericService<Lathe>, GenericService<Lathe>>();
+builder.Services.AddScoped<IGenericService<Milling>, GenericService<Milling>>();
+builder.Services.AddScoped<IGenericService<Site>, GenericService<Site>>();
+builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>();
 
 // BatchQueue services, Init of Batch queue
 builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
@@ -50,11 +51,15 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map of all of the endpoints
-//app.MapAssemblyLineEndpoints();
+app.MapAssemblyLineEndpoints();
+app.MapBatchEndpoints();
 app.MapCustomerEndpoint();
-app.MapSiteEndpoint();
+app.MapLatheEndpoints();
+app.MapMillingEndpoints();
+app.MapSiteEndpoints();
+app.MapTestLineEndpoints();
 app.MapDefaultEndpoints();
-app.MapDataGeneratorEndpoint();
+app.MapDataGeneratorEndpoints();
 
 await app.RunAsync();
 
