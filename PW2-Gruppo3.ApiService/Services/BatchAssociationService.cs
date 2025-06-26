@@ -1,4 +1,5 @@
-﻿using PW2_Gruppo3.DataGenerator;
+﻿using PW2_Gruppo3.ApiService.Data;
+using PW2_Gruppo3.DataGenerator;
 using PW2_Gruppo3.Models;
 
 
@@ -6,6 +7,17 @@ namespace PW2_Gruppo3.ApiService.Services;
 
 public class BatchAssociationService
 {
+    private readonly IBatchQueueService _batchQueueService;
+    private readonly IGenericService<Batch> _batchService;
+    private Batch workingBatch;
+    
+    public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService)
+    {
+        _batchQueueService = batchQueueService;
+        _batchService = batchService;
+    }
+
+
     public AssemblyLine? ProcessAssemblyLine(ReceivedData message)
     {
         if (message?.AssemblyLine == null) return null;
@@ -94,27 +106,59 @@ public class BatchAssociationService
         return testLine;
     }
 
-    public void ProcessTelemetryMessage(ReceivedData message)
+    public async Task ProcessTelemetryMessage(ReceivedData message)
     {
-        // TODO: fare il check di un batch aperto (che stiamo completando),
-        // se ne troviamo uno aperto dobbiamo associare a quello i pezzi che sono arrivati
-        // se non abbiamo un batch aperto dobbiamo iniziare a completarne uno
+        // troviamo il batch su cui lavorare
+        workingBatch = await GetBatch();
+        
+        // completiamo le istanze 
+        var assemblyLine = ProcessAssemblyLine(message);
+        var lathe = ProcessLathe(message);
+        var milling = ProcessMilling(message);
+        var testLine = ProcessTestLine(message);
+        
+        
+        // TODO: una volta che abbiamo le 4 istanze completate chiamo una funzione che fa aggiorna il contatore 
+        // dei pezzi prodotti all'interno del batch e controlla se l'abbiamo completato
+        
         
         // TODO: inoltre bisogna capire cosa fare quando un batch è completato
-        
-        // TODO: una volta che abbiamo capito a quale batch associare i pezzi chiamiamo queste
-        // funzioni per elaborare i dati delle macchine e avere un'istanza con i dati ricevuti
-        // dobbiamo quindi completare al meglio possibile queste istanze
-        
-        // var assemblyLine = ProcessAssemblyLine(message);
-        // var lathe = ProcessLathe(message);
-        // var milling = ProcessMilling(message);
-        // var testLine = ProcessTestLine(message);
-        
-        // TODO: una volta che abbiamo le 4 istanze completate dobbiamo salvarle a DB e il gioco è fatto
-        
 
         Console.WriteLine("Telemetry elaborata con successo.");
+    }
+
+    private async Task CheckBatch(Batch workBatch)
+    {
+        // qua devo aumentare il contatore di pezzi prodotti, controllare se ho finito il batch apportare le modifiche del caso
+        
+    }
+    
+    private async Task<Batch> GetBatch()
+    {
+        var firstBatch = await _batchQueueService.GetFirstBatchUuidAsync();
+        var batch = new Batch();
+
+        if (firstBatch.HasValue)
+        {
+            batch = await _batchService.GetByIdAsync(firstBatch.Value);
+            if (batch.ItemProduced < batch.ItemQuantity)
+            {
+                if (!batch.isCompleted)
+                    return batch;
+                
+                batch.isCompleted = true;
+                await _batchService.UpdateAsync(batch);
+            }
+        }
+        else
+            return null;
+
+        
+        // se a questo punto la funzione non ha ritornato vuol dire che il batch è completato ma
+        // è ancora dentro la coda, quindi lo tolgo dalla coda e poi vado di ricorsione per 
+        // trovare un batch non completo
+        await _batchQueueService.DequeueAsync(batch.Id);
+        return await GetBatch();
     }
 }
 
