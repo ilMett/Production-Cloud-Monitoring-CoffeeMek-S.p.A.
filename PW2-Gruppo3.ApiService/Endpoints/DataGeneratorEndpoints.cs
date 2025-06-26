@@ -12,7 +12,7 @@ public static class DataGeneratorEndpoints
 {
     public static IEndpointRouteBuilder MapDataGeneratorEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/telemetry")// Raggruppo tutte le api inierenti allo stesso gruppo, non serve riscrivere tutto l'url
+        var group = builder.MapGroup("/api/v1/telemetry")// Raggruppo tutte le api ineerenti allo stesso gruppo, non serve riscrivere tutto l'url
             .WithTags("DataGenerator")
             .WithOpenApi();
         
@@ -23,34 +23,30 @@ public static class DataGeneratorEndpoints
         return builder;
     }
 
-    private static async Task<Results<Ok<Message>, NoContent>> ReceiveTelemetryAsync(Message message)
+    private static async Task<Results<Ok<ReceivedData>, NoContent>> ReceiveTelemetryAsync(ReceivedData data, BatchAssociationService batchAssociationService)
     {
         //  integrazione nell'endpoint della chiamata al service BatchAssociationService
-        var service = new BatchAssociationService();
+        //var service = new BatchAssociationService();
         // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedMessage) e il messaggio inviato (DataGenerator.Models)
-        service.ProcessTelemetryMessage(message); 
+        await batchAssociationService.ProcessTelemetryMessage(data); 
 
         // Creo il percorso per il file di log
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         Directory.CreateDirectory(logPath);
 
         string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
-        string jsonMessage = JsonSerializer.Serialize(message, new JsonSerializerOptions { WriteIndented = true });
+        string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
         string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
 
         await File.AppendAllTextAsync(logFile, logEntry);
 
-        return TypedResults.Ok(message);
+        return TypedResults.Ok(data);
     }
 
     // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedData) e il messaggio inviato (DataGenerator.Message)
-    private static async Task<ReceivedData> CastReceivedMessage(Message message)
+    private static async Task<ReceivedData> CastReceivedMessage(Message message, ReceivedData receivedData)
     {
-        var receivedData = new ReceivedData();
-
-        if (decimal.TryParse(message.AssemblyLine.AverageStationTime, out decimal averageStationTime))
-            receivedData.AssemblyLine.AverageStationTime = averageStationTime;
-
+        //  e qui dentro in qualche modo usiamo i converters creati
         return receivedData;
     }
 

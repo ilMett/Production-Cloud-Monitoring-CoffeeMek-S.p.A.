@@ -13,17 +13,17 @@ public class BatchAssociationService
     private readonly IGenericService<Lathe> _latheService;
     private readonly IGenericService<Milling> _millingService;
     private readonly IGenericService<TestLine> _tlService;
-    private Batch workingBatch;
+    private Batch inProductionBatch;
 
-    public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService, IGenericService<AssemblyLine> alService, IGenericService<Lathe> latheService, IGenericService<Milling> millingService, IGenericService<TestLine> tlService)
-    {
-        _batchQueueService = batchQueueService;
-        _batchService = batchService;
-        _alService = alService;
-        _latheService = latheService;
-        _millingService = millingService;
-        _tlService = tlService;
-    }
+    //public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService, IGenericService<AssemblyLine> alService, IGenericService<Lathe> latheService, IGenericService<Milling> millingService, IGenericService<TestLine> tlService)
+    //{
+    //    _batchQueueService = batchQueueService;
+    //    _batchService = batchService;
+    //    _alService = alService;
+    //    _latheService = latheService;
+    //    _millingService = millingService;
+    //    _tlService = tlService;
+    //}
 
     public AssemblyLine? ProcessAssemblyLine(ReceivedData message)
     {
@@ -32,7 +32,7 @@ public class BatchAssociationService
         // TODO: per tutte le istanze capire se serve o meno mantenere i campi isFirst e isLast
         var al = new AssemblyLine();
         al.Id = Guid.NewGuid();
-        al.BatchId = workingBatch.Id;
+        al.BatchId = inProductionBatch.Id;
         al.AverageStationTime = message.AssemblyLine.AverageStationTime;
         al.OperatorsNumber = message.AssemblyLine.OperatorsNumber;
         al.Faults = message.AssemblyLine.Faults;
@@ -52,7 +52,7 @@ public class BatchAssociationService
 
         var lathe = new Lathe();
         lathe.Id = Guid.NewGuid();
-        lathe.BatchId = workingBatch.Id;
+        lathe.BatchId = inProductionBatch.Id;
         lathe.MachineState = message.Lathe.MachineState;
         lathe.Rpm = message.Lathe.Rpm;
         lathe.SpindleTemperature = message.Lathe.SpindleTemperature;
@@ -73,7 +73,7 @@ public class BatchAssociationService
 
         var milling = new Milling();
         milling.Id = Guid.NewGuid();
-        milling.BatchId = workingBatch.Id;
+        milling.BatchId = inProductionBatch.Id;
         milling.CycleDuration = message.Milling.CycleDuration;
         milling.CuttingDepth = message.Milling.CuttingDepth;
         milling.Vibration = message.Milling.Vibration;
@@ -94,7 +94,7 @@ public class BatchAssociationService
 
         var tl = new TestLine();
         tl.Id = Guid.NewGuid();
-        tl.BatchId = workingBatch.Id;
+        tl.BatchId = inProductionBatch.Id;
         tl.TestResult = message.TestLine.TestResult;
         tl.BoilerPressure = message.TestLine.BoilerPressure;
         tl.BoilerTemperature = message.TestLine.BoilerTemperature;
@@ -111,8 +111,8 @@ public class BatchAssociationService
 
     public async Task ProcessTelemetryMessage(ReceivedData message)
     {
-        // troviamo il batch su cui lavorare
-        workingBatch = await GetBatch();
+        // troviamo il batch su cui lavorare    (previously called workingBatch)
+        inProductionBatch = await GetBatch();
         
         // completiamo le istanze 
         var assemblyLine = ProcessAssemblyLine(message);
@@ -120,7 +120,7 @@ public class BatchAssociationService
         var milling = ProcessMilling(message);
         var testLine = ProcessTestLine(message);
         
-        workingBatch = await CheckBatch(workingBatch);
+        inProductionBatch = await CheckBatch(inProductionBatch);
         
         if (assemblyLine != null)
             await _alService.InsertAsync(assemblyLine);
@@ -138,17 +138,18 @@ public class BatchAssociationService
     }
 
     // TODO: capire se posso cancellare o meno il fatto che deve ritornare il batch, essendo globale potrebbe non servire ritornare, fare test
-    private async Task<Batch> CheckBatch(Batch workBatch)
+    private async Task<Batch> CheckBatch(Batch inProductionBatch)   //  previously called workBatch
     {
-        workBatch.ItemProduced++;
+        inProductionBatch.ItemProduced++;
 
-        if (workBatch.ItemProduced >= workBatch.ItemQuantity)
+        if (inProductionBatch.ItemProduced >= inProductionBatch.ItemQuantity)
         {
-            workBatch.isCompleted = true;
-            await _batchService.UpdateAsync(workBatch);
-            workBatch = await GetBatch();
+            inProductionBatch.isCompleted = true;
+            await _batchService.UpdateAsync(inProductionBatch);
+            inProductionBatch = await GetBatch();
         }
-        return workBatch;
+
+        return inProductionBatch;
     }
     
     private async Task<Batch> GetBatch()
@@ -159,6 +160,7 @@ public class BatchAssociationService
         if (firstBatch.HasValue)
         {
             batch = await _batchService.GetByIdAsync(firstBatch.Value);
+
             if (batch.ItemProduced < batch.ItemQuantity)
             {
                 if (!batch.isCompleted)
