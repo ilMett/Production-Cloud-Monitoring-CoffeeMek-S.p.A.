@@ -9,57 +9,60 @@ public class BatchAssociationService
 {
     private readonly IBatchQueueService _batchQueueService;
     private readonly IGenericService<Batch> _batchService;
+    private readonly IGenericService<AssemblyLine> _alService;
+    private readonly IGenericService<Lathe> _latheService;
+    private readonly IGenericService<Milling> _millingService;
+    private readonly IGenericService<TestLine> _tlService;
     private Batch workingBatch;
-    
-    public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService)
+
+    public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService, IGenericService<AssemblyLine> alService, IGenericService<Lathe> latheService, IGenericService<Milling> millingService, IGenericService<TestLine> tlService)
     {
         _batchQueueService = batchQueueService;
         _batchService = batchService;
+        _alService = alService;
+        _latheService = latheService;
+        _millingService = millingService;
+        _tlService = tlService;
     }
-
 
     public AssemblyLine? ProcessAssemblyLine(ReceivedData message)
     {
         if (message?.AssemblyLine == null) return null;
 
+        // TODO: per tutte le istanze capire se serve o meno mantenere i campi isFirst e isLast
         var al = new AssemblyLine();
+        al.Id = Guid.NewGuid();
+        al.BatchId = workingBatch.Id;
         al.AverageStationTime = message.AssemblyLine.AverageStationTime;
-        // TODO: continuare a riempire tutte queste istanze 
-        
-        
-        var assemblyLine = new AssemblyLine
-        {
-            assemblyLine.AverageStationTime = message.AssemblyLine.AverageStationTime,
-            OperatorsNumber = message.AssemblyLine.OperatorsNumber,
-            Faults = message.AssemblyLine.Faults,
-            Site = message.AssemblyLine.Site,
-            TimeStampLocal = message.AssemblyLine.TimeStampLocal,
-            TimeStampUtc = message.AssemblyLine.TimeStampUtc,
-            MachineBlockage = message.AssemblyLine.MachineBlockage,
-            BlockageCause = message.AssemblyLine.BlockageCause,
-            LastMaintenance = message.AssemblyLine.LastMaintenance
-        };
+        al.OperatorsNumber = message.AssemblyLine.OperatorsNumber;
+        al.Faults = message.AssemblyLine.Faults;
+        al.SiteId = message.AssemblyLine.SiteId;
+        al.TimestampLocal = message.AssemblyLine.TimestampLocal;
+        al.TimestampUtc = message.AssemblyLine.TimestampUtc;
+        al.MachineBlockage = message.AssemblyLine.MachineBlockage;
+        al.BlockageCause = message.AssemblyLine.BlockageCause;
+        al.LastMaintenance = message.AssemblyLine.LastMaintenance;
 
-        return assemblyLine;
+        return al;
     }
 
     public Lathe? ProcessLathe(ReceivedData message)
     {
         if (message?.Lathe == null) return null;
 
-        var lathe = new Lathe
-        {
-            MachineState = message.Lathe.MachineState,
-            RotationSpeed = message.Lathe.RotationSpeed,
-            SpindleTemperature = message.Lathe.SpindleTemperature,
-            CompletedItems = message.Lathe.CompletedItems,
-            Site = message.Lathe.Site,
-            TimeStampLocal = message.Lathe.TimeStampLocal,
-            TimeStampUtc = message.Lathe.TimeStampUtc,
-            MachineBlockage = message.Lathe.MachineBlockage,
-            BlockageCause = message.Lathe.BlockageCause,
-            LastMaintenance = message.Lathe.LastMaintenance
-        };
+        var lathe = new Lathe();
+        lathe.Id = Guid.NewGuid();
+        lathe.BatchId = workingBatch.Id;
+        lathe.MachineState = message.Lathe.MachineState;
+        lathe.Rpm = message.Lathe.Rpm;
+        lathe.SpindleTemperature = message.Lathe.SpindleTemperature;
+        lathe.CompletedItemsQuantity = message.Lathe.CompletedItemsQuantity;
+        lathe.SiteId = message.Lathe.SiteId;
+        lathe.TimestampLocal = message.Lathe.TimestampLocal;
+        lathe.TimestampUtc = message.Lathe.TimestampUtc;
+        lathe.MachineBlockage = message.Lathe.MachineBlockage;
+        lathe.BlockageCause = message.Lathe.BlockageCause;
+        lathe.LastMaintenance = message.Lathe.LastMaintenance;
 
         return lathe;
     }
@@ -68,19 +71,19 @@ public class BatchAssociationService
     {
         if (message?.Milling == null) return null;
 
-        var milling = new Milling
-        {
-            CycleTime = message.Milling.CycleTime,
-            CuttingDepth = message.Milling.CuttingDepth,
-            Vibration = message.Milling.Vibration,
-            UserAlerts = message.Milling.UserAlerts,
-            Site = message.Milling.Site,
-            TimeStampLocal = message.Milling.TimeStampLocal,
-            TimeStampUtc = message.Milling.TimeStampUtc,
-            MachineBlockage = message.Milling.MachineBlockage,
-            BlockageCause = message.Milling.BlockageCause,
-            LastMaintenance = message.Milling.LastMaintenance
-        };
+        var milling = new Milling();
+        milling.Id = Guid.NewGuid();
+        milling.BatchId = workingBatch.Id;
+        milling.CycleDuration = message.Milling.CycleDuration;
+        milling.CuttingDepth = message.Milling.CuttingDepth;
+        milling.Vibration = message.Milling.Vibration;
+        milling.UserAlerts = message.Milling.UserAlerts;
+        milling.SiteId = message.Milling.SiteId;
+        milling.TimestampLocal = message.Milling.TimestampLocal;
+        milling.TimestampUtc = message.Milling.TimestampUtc;
+        milling.MachineBlockage = message.Milling.MachineBlockage;
+        milling.BlockageCause = message.Milling.BlockageCause;
+        milling.LastMaintenance = message.Milling.LastMaintenance;
 
         return milling;
     }
@@ -89,21 +92,21 @@ public class BatchAssociationService
     {
         if (message?.TestLine == null) return null;
 
-        var testLine = new TestLine
-        {
-            TestResult = message.TestLine.TestResult,
-            BoilerPressure = message.TestLine.BoilerPressure,
-            BoilerTemperature = message.TestLine.BoilerTemperature,
-            EnergyConsumption = message.TestLine.EnergyConsumption,
-            Site = message.TestLine.Site,
-            TimeStampLocal = message.TestLine.TimeStampLocal,
-            TimeStampUtc = message.TestLine.TimeStampUtc,
-            MachineBlockage = message.TestLine.MachineBlockage,
-            BlockageCause = message.TestLine.BlockageCause,
-            LastMaintenance = message.TestLine.LastMaintenance
-        };
+        var tl = new TestLine();
+        tl.Id = Guid.NewGuid();
+        tl.BatchId = workingBatch.Id;
+        tl.TestResult = message.TestLine.TestResult;
+        tl.BoilerPressure = message.TestLine.BoilerPressure;
+        tl.BoilerTemperature = message.TestLine.BoilerTemperature;
+        tl.EnergyConsumption = message.TestLine.EnergyConsumption;
+        tl.SiteId = message.TestLine.SiteId;
+        tl.TimestampLocal = message.TestLine.TimestampLocal;
+        tl.TimestampUtc = message.TestLine.TimestampUtc;
+        tl.MachineBlockage = message.TestLine.MachineBlockage;
+        tl.BlockageCause = message.TestLine.BlockageCause;
+        tl.LastMaintenance = message.TestLine.LastMaintenance;
 
-        return testLine;
+        return tl;
     }
 
     public async Task ProcessTelemetryMessage(ReceivedData message)
@@ -117,20 +120,35 @@ public class BatchAssociationService
         var milling = ProcessMilling(message);
         var testLine = ProcessTestLine(message);
         
+        workingBatch = await CheckBatch(workingBatch);
         
-        // TODO: una volta che abbiamo le 4 istanze completate chiamo una funzione che fa aggiorna il contatore 
-        // dei pezzi prodotti all'interno del batch e controlla se l'abbiamo completato
+        if (assemblyLine != null)
+            await _alService.InsertAsync(assemblyLine);
         
+        if (lathe != null)
+            await _latheService.InsertAsync(lathe);
         
-        // TODO: inoltre bisogna capire cosa fare quando un batch è completato
+        if (milling != null)
+            await _millingService.InsertAsync(milling);
+        
+        if (testLine != null)
+            await _tlService.InsertAsync(testLine);
 
         Console.WriteLine("Telemetry elaborata con successo.");
     }
 
-    private async Task CheckBatch(Batch workBatch)
+    // TODO: capire se posso cancellare o meno il fatto che deve ritornare il batch, essendo globale potrebbe non servire ritornare, fare test
+    private async Task<Batch> CheckBatch(Batch workBatch)
     {
-        // qua devo aumentare il contatore di pezzi prodotti, controllare se ho finito il batch apportare le modifiche del caso
-        
+        workBatch.ItemProduced++;
+
+        if (workBatch.ItemProduced >= workBatch.ItemQuantity)
+        {
+            workBatch.isCompleted = true;
+            await _batchService.UpdateAsync(workBatch);
+            workBatch = await GetBatch();
+        }
+        return workBatch;
     }
     
     private async Task<Batch> GetBatch()
