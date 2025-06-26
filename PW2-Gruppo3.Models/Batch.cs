@@ -14,9 +14,10 @@ public class Batch
     [Key]
     public Guid Id { get; set; } 
     public int ItemQuantity { get; set; }
-
+    public int ItemProduced { get; set; }
     public Guid CustomerId { get; set; }
     public Guid SiteId { get; set; }
+    public bool isCompleted { get; set; }
 
     // Foreign Keys
     public Customer? Customer { get; set; }

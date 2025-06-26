@@ -7,11 +7,12 @@ namespace PW2_Gruppo3.ApiService.Services;
 public interface IBatchQueueService
 {
     Task EnqueueAsync(Guid uuid);
-    Task<Guid?> DequeueAsync();
+    Task<Guid?> DequeueAsync(Guid uuid);
     Task<IEnumerable<Guid>> GetAllAsync();
     Task ReorderAsync(IEnumerable<Guid> newOrder);
     Task<int> GetCountAsync();
     Task InitializeFromBatchQueueAsync();
+    Task<Guid?> GetFirstBatchUuidAsync();
 }
 
 public class BatchQueueService : IBatchQueueService
@@ -82,14 +83,13 @@ public class BatchQueueService : IBatchQueueService
         }
     }
 
-    public async Task<Guid?> DequeueAsync()
+    public async Task<Guid?> DequeueAsync(Guid uuid)
     {
         await _semaphore.WaitAsync();
         try
         {
             var item = await _context.BatchQueueItems
-                .OrderBy(q => q.Position)
-                .FirstOrDefaultAsync();
+                .FindAsync(uuid);
 
             if (item == null)
                 return null;
@@ -153,6 +153,24 @@ public class BatchQueueService : IBatchQueueService
     public async Task<int> GetCountAsync()
     {
         return await _context.BatchQueueItems.CountAsync();
+    }
+    
+    public async Task<Guid?> GetFirstBatchUuidAsync()
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var firstBatchId = await _context.BatchQueueItems
+                .OrderBy(q => q.Position)
+                .Select(q => (Guid?)q.BatchUuid) 
+                .FirstOrDefaultAsync();
+
+            return firstBatchId;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
 }
