@@ -1,4 +1,6 @@
-﻿using PW2_Gruppo3.ApiService.Data;
+﻿using System.Text;
+using System.Text.Json;
+using PW2_Gruppo3.ApiService.Data;
 using PW2_Gruppo3.DataGenerator;
 using PW2_Gruppo3.Models;
 
@@ -133,8 +135,23 @@ public class BatchAssociationService
         
         if (testLine != null)
             await _tlService.InsertAsync(testLine);
+        
+        string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+        Directory.CreateDirectory(logPath);
 
-        Console.WriteLine("Telemetry elaborata con successo.");
+        string logFile = Path.Combine(logPath, $"association_log_{DateTime.Now:yyyy-MM-dd}.txt");
+        string logEntry1 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Milling associato:\n{milling}\n";
+        string logEntry2 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Lathe associato:\n{lathe}\n";
+        string logEntry3 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] AssemblyLine associato:\n{assemblyLine}\n";
+        string logEntry4 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] TestLine associato:\n{testLine}\n\n";
+        
+        StringBuilder sb = new StringBuilder();
+        sb.Append(logEntry1);
+        sb.Append(logEntry2);
+        sb.Append(logEntry3);
+        sb.Append(logEntry4);
+        
+        await File.AppendAllTextAsync(logFile, sb.ToString());
     }
 
     // TODO: capire se posso cancellare o meno il fatto che deve ritornare il batch, essendo globale potrebbe non servire ritornare, fare test

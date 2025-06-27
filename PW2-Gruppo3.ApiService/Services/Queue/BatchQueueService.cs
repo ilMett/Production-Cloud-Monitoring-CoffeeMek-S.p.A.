@@ -38,18 +38,10 @@ public class BatchQueueService : IBatchQueueService
 
             foreach (var batchItem in batchItems)
             {
-                var queueItem = new BatchQueueItem()
-                {
-                    Id = Guid.NewGuid(),
-                    BatchUuid = batchItem.BatchUuid,
-                    Position = batchItem.Position,
-                    CreatedAt = batchItem.CreatedAt
-                };
-
-                _context.BatchQueueItems.Add(queueItem);
+                // _context.BatchQueueItems.Add(batchItem);
             }
 
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync();
         }
         finally
         {
@@ -73,8 +65,17 @@ public class BatchQueueService : IBatchQueueService
                 Position = maxPosition + 1,
                 CreatedAt = DateTime.UtcNow
             };
-
+            
             _context.BatchQueueItems.Add(queueItem);
+            
+            string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+            Directory.CreateDirectory(logPath);
+
+            string logFile = Path.Combine(logPath, $"queue_log_{DateTime.Now:yyyy-MM-dd}.txt");
+            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Lotto inserito nella coda:\n{queueItem}\n\n";
+
+            await File.AppendAllTextAsync(logFile, logEntry);
+
             await _context.SaveChangesAsync();
         }
         finally
