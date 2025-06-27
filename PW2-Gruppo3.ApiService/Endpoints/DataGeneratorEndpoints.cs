@@ -25,8 +25,6 @@ public static class DataGeneratorEndpoints
 
     private static async Task<Results<Ok<ReceivedData>, NoContent>> ReceiveTelemetryAsync(ReceivedData data, BatchAssociationService batchAssociationService)
     {
-        //  integrazione nell'endpoint della chiamata al service BatchAssociationService
-        //var service = new BatchAssociationService();
         // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedMessage) e il messaggio inviato (DataGenerator.Models)
         await batchAssociationService.ProcessTelemetryMessage(data); 
 
