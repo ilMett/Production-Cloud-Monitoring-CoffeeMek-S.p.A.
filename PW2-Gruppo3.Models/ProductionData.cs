@@ -12,7 +12,7 @@ public abstract class ProductionData
 {
     [Key]
     public Guid Id { get; set; }  
-    public Guid ItemId { get; set; }
+    public Guid MachineryId { get; set; }
     public bool IsFirst { get; set; } 
     public bool IsLast { get; set; }
     public bool MachineBlockage { get; set; }

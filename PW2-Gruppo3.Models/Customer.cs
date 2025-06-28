@@ -16,5 +16,5 @@ public class Customer
     public string Iban { get; set; } = string.Empty;
 
     // Proprietà di navigazione: Un cliente può avere molti lotti.
-    public ICollection<Batch> Batches { get; set; } = [];
+    //public ICollection<Batch> Batches { get; set; } = [];
 }

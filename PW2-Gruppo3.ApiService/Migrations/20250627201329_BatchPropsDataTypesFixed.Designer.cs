@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PW2_Gruppo3.ApiService.Data;
 
@@ -11,9 +12,11 @@ using PW2_Gruppo3.ApiService.Data;
 namespace PW2Gruppo3.ApiService.Migrations
 {
     [DbContext(typeof(ProductionMonitoringContext))]
-    partial class ProductionMonitoringContextModelSnapshot : ModelSnapshot
+    [Migration("20250627201329_BatchPropsDataTypesFixed")]
+    partial class BatchPropsDataTypesFixed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,14 +49,14 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Property<bool>("IsLast")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("LastMaintenance")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("MachineBlockage")
                         .HasColumnType("bit");
-
-                    b.Property<Guid>("MachineryId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("OperatorsNumber")
                         .HasColumnType("int");
@@ -170,6 +173,9 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Property<bool>("IsLast")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("LastMaintenance")
                         .HasColumnType("datetime2");
 
@@ -179,9 +185,6 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Property<string>("MachineState")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("MachineryId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Rpm")
                         .HasColumnType("int");
@@ -232,14 +235,14 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Property<bool>("IsLast")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("LastMaintenance")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("MachineBlockage")
                         .HasColumnType("bit");
-
-                    b.Property<Guid>("MachineryId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SiteId")
                         .HasColumnType("uniqueidentifier");
@@ -305,14 +308,14 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Property<bool>("IsLast")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("LastMaintenance")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("MachineBlockage")
                         .HasColumnType("bit");
-
-                    b.Property<Guid>("MachineryId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SiteId")
                         .HasColumnType("uniqueidentifier");
@@ -347,7 +350,7 @@ namespace PW2Gruppo3.ApiService.Migrations
             modelBuilder.Entity("PW2_Gruppo3.Models.Batch", b =>
                 {
                     b.HasOne("PW2_Gruppo3.Models.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Batches")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -405,6 +408,11 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Navigation("Millings");
 
                     b.Navigation("TestLines");
+                });
+
+            modelBuilder.Entity("PW2_Gruppo3.Models.Customer", b =>
+                {
+                    b.Navigation("Batches");
                 });
 
             modelBuilder.Entity("PW2_Gruppo3.Models.Site", b =>

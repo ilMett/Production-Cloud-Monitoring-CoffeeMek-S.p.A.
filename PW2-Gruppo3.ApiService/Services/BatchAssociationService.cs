@@ -115,27 +115,42 @@ public class BatchAssociationService
     {
         // troviamo il batch su cui lavorare    (previously called workingBatch)
         inProductionBatch = await GetBatch();
-        
+
+        if (inProductionBatch != null)
+        {
+            return;
+        }
+
+        var assemblyLine = new AssemblyLine();
+        var lathe = new Lathe();
+        var milling = new Milling();
+        var testLine = new TestLine();
+
+
         // completiamo le istanze 
-        var assemblyLine = ProcessAssemblyLine(message);
-        var lathe = ProcessLathe(message);
-        var milling = ProcessMilling(message);
-        var testLine = ProcessTestLine(message);
-        
-        inProductionBatch = await CheckBatch(inProductionBatch);
-        
+        if (inProductionBatch != null)
+        {
+            assemblyLine = ProcessAssemblyLine(message);
+            lathe = ProcessLathe(message);
+            milling = ProcessMilling(message);
+            testLine = ProcessTestLine(message);
+
+            inProductionBatch = await CheckBatch(inProductionBatch);
+        }
+
+
         if (assemblyLine != null)
             await _alService.InsertAsync(assemblyLine);
-        
+
         if (lathe != null)
             await _latheService.InsertAsync(lathe);
-        
+
         if (milling != null)
             await _millingService.InsertAsync(milling);
-        
+
         if (testLine != null)
             await _tlService.InsertAsync(testLine);
-        
+
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         Directory.CreateDirectory(logPath);
 
@@ -144,13 +159,13 @@ public class BatchAssociationService
         string logEntry2 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Lathe associato:\n{lathe}\n";
         string logEntry3 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] AssemblyLine associato:\n{assemblyLine}\n";
         string logEntry4 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] TestLine associato:\n{testLine}\n\n";
-        
+
         StringBuilder sb = new StringBuilder();
         sb.Append(logEntry1);
         sb.Append(logEntry2);
         sb.Append(logEntry3);
         sb.Append(logEntry4);
-        
+
         await File.AppendAllTextAsync(logFile, sb.ToString());
     }
 
@@ -168,7 +183,7 @@ public class BatchAssociationService
 
         return inProductionBatch;
     }
-    
+
     private async Task<Batch> GetBatch()
     {
         var firstBatch = await _batchQueueService.GetFirstBatchUuidAsync();
@@ -182,15 +197,15 @@ public class BatchAssociationService
             {
                 if (!batch.isCompleted)
                     return batch;
-                
+
                 batch.isCompleted = true;
                 await _batchService.UpdateAsync(batch);
             }
         }
         else
-            return null;
+            return batch;
 
-        
+
         // se a questo punto la funzione non ha ritornato vuol dire che il batch è completato ma
         // è ancora dentro la coda, quindi lo tolgo dalla coda e poi vado di ricorsione per 
         // trovare un batch non completo

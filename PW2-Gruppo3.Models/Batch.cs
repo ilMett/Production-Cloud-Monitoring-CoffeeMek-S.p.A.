@@ -14,18 +14,18 @@ public class Batch
     [Key]
     public Guid Id { get; set; } 
     public int ItemQuantity { get; set; }
-    public int ItemProduced { get; set; }
+    public int? ItemProduced { get; set; }
     public Guid CustomerId { get; set; }
     public Guid SiteId { get; set; }
-    public bool isCompleted { get; set; }
+    public bool isCompleted { get; set; } = false;
 
     // Foreign Keys
     public Customer? Customer { get; set; }
     public Site? Site { get; set; }
 
     // Proprietà di navigazione per i dati di produzione
-    public ICollection<Milling> Millings { get; set; } = [];
-    public ICollection<Lathe> Lathes { get; set; } = [];
-    public ICollection<AssemblyLine> AssemblyLines { get; set; } = [];
-    public ICollection<TestLine> TestLines { get; set; } = [];
+    public ICollection<Milling>? Millings { get; set; } = [];
+    public ICollection<Lathe>? Lathes { get; set; } = [];
+    public ICollection<AssemblyLine>? AssemblyLines { get; set; } = [];
+    public ICollection<TestLine>? TestLines { get; set; } = [];
 }

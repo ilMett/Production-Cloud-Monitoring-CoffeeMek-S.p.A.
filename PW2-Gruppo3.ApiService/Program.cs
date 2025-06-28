@@ -32,6 +32,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     // Aggiungi gli altri converter se necessari (es. StringToGuidConverter)
 });
 
+// BatchQueue services, Init of Batch queue
+builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
+builder.Services.AddHostedService<QueueInitializerHostedService>();
+
 // Register API services
 builder.Services.AddScoped<IGenericService<AssemblyLine>, GenericService<AssemblyLine>>();
 builder.Services.AddScoped<IGenericService<Batch>, GenericService<Batch>>();
@@ -43,9 +47,6 @@ builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>(
 
 builder.Services.AddScoped<BatchAssociationService>();
 
-// BatchQueue services, Init of Batch queue
-builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
-builder.Services.AddHostedService<QueueInitializerHostedService>();
 
 builder.Services.AddDbContext<ProductionMonitoringContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("db")));

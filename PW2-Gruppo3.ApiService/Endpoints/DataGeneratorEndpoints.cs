@@ -29,14 +29,14 @@ public static class DataGeneratorEndpoints
         await batchAssociationService.ProcessTelemetryMessage(data); 
 
         // Creo il percorso per il file di log
-        string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-        Directory.CreateDirectory(logPath);
+        //string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+        //Directory.CreateDirectory(logPath);
         
-        string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
-        string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-        string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
+        //string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
+        //string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        //string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
         
-        await File.AppendAllTextAsync(logFile, logEntry);
+        //await File.AppendAllTextAsync(logFile, logEntry);
 
         return TypedResults.Ok(data);
     }

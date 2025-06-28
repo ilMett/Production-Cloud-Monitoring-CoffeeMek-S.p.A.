@@ -34,9 +34,9 @@ public class ProductionMonitoringContext : DbContext
         //// Configura la chiave primaria sulla classe base
         modelBuilder.Entity<Batch>()
             .ToTable("Batches")
-            .HasOne<Customer>(x => x.Customer)
-            .WithMany(s => s.Batches)
-            .HasForeignKey(b => b.CustomerId);
+            .HasOne<Customer>(x => x.Customer);
+            //.WithMany(s => s.Batches)
+            //.HasForeignKey(b => b.CustomerId);
 
         // FK verso Site
         modelBuilder.Entity<Batch>()
