@@ -6,7 +6,7 @@
 
 <h3 class="mt-3 mb-3">Aggiungi un nuovo cliente</h3>
 
-<EditForm Model="@newCustomer" OnValidSubmit="InsertCustomer" class="w-50 mt-3">
+<EditForm Model="@newCustomer" @FormName="AddCostumer" OnValidSubmit="InsertCustomer" class="w-50 mt-3">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
