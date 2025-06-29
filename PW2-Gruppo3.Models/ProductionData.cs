@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PW2_Gruppo3.Models;
@@ -26,5 +27,6 @@ public abstract class ProductionData
     public Guid SiteId { get; set; }
 
     // Proprietà di navigazione
+    [JsonIgnore]
     public Batch Batch { get; set; } = null!;
 }

@@ -29,7 +29,7 @@ public class Program
             
             Console.WriteLine(response.IsSuccessStatusCode ? $"Dati inviati con successo alle {DateTime.Now}" : $"Errore durante l'invio: {response.StatusCode}");
 
-            await Task.Delay(TimeSpan.FromSeconds(5), cts.Token);
+            await Task.Delay(TimeSpan.FromSeconds(1000), cts.Token);
         }
 
     }

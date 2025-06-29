@@ -5,7 +5,6 @@ public class BatchQueueItem
     public Guid Id { get; set; }
     public Guid BatchUuid { get; set; }
     public int Position { get; set; }
-    
     public DateTime CreatedAt { get; set; }
 
 }

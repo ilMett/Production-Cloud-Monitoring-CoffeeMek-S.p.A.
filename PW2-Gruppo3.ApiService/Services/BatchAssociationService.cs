@@ -6,151 +6,185 @@ using PW2_Gruppo3.Models;
 
 
 namespace PW2_Gruppo3.ApiService.Services;
-
+//  batch: 3fa85f64-5717-4262-b3fc-2c963f66afa6
+//  customer: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+//  site: 3fa85f64-5717-4562-b3fc-2c963f66afa6
 public class BatchAssociationService
 {
     private readonly IBatchQueueService _batchQueueService;
     private readonly IGenericService<Batch> _batchService;
-    private readonly IGenericService<AssemblyLine> _alService;
+    private readonly IGenericService<AssemblyLine> _assemblyLineService;
     private readonly IGenericService<Lathe> _latheService;
     private readonly IGenericService<Milling> _millingService;
-    private readonly IGenericService<TestLine> _tlService;
-    private Batch inProductionBatch;
+    private readonly IGenericService<TestLine> _testLineService;
 
-    public BatchAssociationService(IBatchQueueService batchQueueService, IGenericService<Batch> batchService, IGenericService<AssemblyLine> alService, IGenericService<Lathe> latheService, IGenericService<Milling> millingService, IGenericService<TestLine> tlService)
+    public BatchAssociationService(
+        IBatchQueueService batchQueueService, 
+        IGenericService<Batch> batchService, 
+        IGenericService<AssemblyLine> assemblyLineService, 
+        IGenericService<Lathe> latheService, 
+        IGenericService<Milling> millingService, 
+        IGenericService<TestLine> testLineService
+        )
     {
         _batchQueueService = batchQueueService;
         _batchService = batchService;
-        _alService = alService;
+        _assemblyLineService = assemblyLineService;
         _latheService = latheService;
         _millingService = millingService;
-        _tlService = tlService;
+        _testLineService = testLineService;
     }
 
-    private AssemblyLine? ProcessAssemblyLine(ReceivedData message)
+    private async Task<Batch?> GetBatch()
     {
-        if (message?.AssemblyLine == null) return null;
+        var firstBatchId = await _batchQueueService.GetFirstBatchUuidAsync();
 
-        // TODO: per tutte le istanze capire se serve o meno mantenere i campi isFirst e isLast
-        var al = new AssemblyLine();
-        al.Id = Guid.NewGuid();
-        al.BatchId = inProductionBatch.Id;
-        al.AverageStationTime = message.AssemblyLine.AverageStationTime;
-        al.OperatorsNumber = message.AssemblyLine.OperatorsNumber;
-        al.Faults = message.AssemblyLine.Faults;
-        al.SiteId = message.AssemblyLine.SiteId;
-        al.TimestampLocal = message.AssemblyLine.TimestampLocal;
-        al.TimestampUtc = message.AssemblyLine.TimestampUtc;
-        al.MachineBlockage = message.AssemblyLine.MachineBlockage;
-        al.BlockageCause = message.AssemblyLine.BlockageCause;
-        al.LastMaintenance = message.AssemblyLine.LastMaintenance;
+        if (!firstBatchId.HasValue)
+        {
+            Console.WriteLine("Batch queue is empty. No batch in production.");
+            // Non c'è nessun batch da elaborare. Restituisci null o un batch di default
+            return null; // Indica che nessun batch è attualmente in produzione
+        }
 
-        return al;
-    }
+        // Cerchiamo il batch nel database usando l'ID dalla coda
+        var batch = await _batchService.GetByIdAsync(firstBatchId.Value);
 
-    private Lathe? ProcessLathe(ReceivedData message)
-    {
-        if (message?.Lathe == null) return null;
+        // Gestiamo il caso in cui il batch non sia stato trovato nel database
+        if (batch == null)
+        {
+            Console.WriteLine($"Batch with ID {firstBatchId.Value} not found in database. Removing from queue.");
 
-        var lathe = new Lathe();
-        lathe.Id = Guid.NewGuid();
-        lathe.BatchId = inProductionBatch.Id;
-        lathe.MachineState = message.Lathe.MachineState;
-        lathe.Rpm = message.Lathe.Rpm;
-        lathe.SpindleTemperature = message.Lathe.SpindleTemperature;
-        lathe.CompletedItemsQuantity = message.Lathe.CompletedItemsQuantity;
-        lathe.SiteId = message.Lathe.SiteId;
-        lathe.TimestampLocal = message.Lathe.TimestampLocal;
-        lathe.TimestampUtc = message.Lathe.TimestampUtc;
-        lathe.MachineBlockage = message.Lathe.MachineBlockage;
-        lathe.BlockageCause = message.Lathe.BlockageCause;
-        lathe.LastMaintenance = message.Lathe.LastMaintenance;
+            // Se il batch non esiste nel DB, lo rimuoviamo dalla coda per evitare cicli infiniti o errori futuri.
+            await _batchQueueService.DequeueAsync(firstBatchId.Value);
 
-        return lathe;
-    }
+            // Richiamiamo GetBatch() per cercare il prossimo batch valido nella coda.
+            return await GetBatch(); // Chiamata ricorsiva per trovare il prossimo batch
+        }
 
-    private Milling? ProcessMilling(ReceivedData message)
-    {
-        if (message?.Milling == null) return null;
+        // A questo punto, 'batch' è garantito non essere null.
+        // Ora puoi controllare le sue proprietà.
 
-        var milling = new Milling();
-        milling.Id = Guid.NewGuid();
-        milling.BatchId = inProductionBatch.Id;
-        milling.CycleDuration = message.Milling.CycleDuration;
-        milling.CuttingDepth = message.Milling.CuttingDepth;
-        milling.Vibration = message.Milling.Vibration;
-        milling.UserAlerts = message.Milling.UserAlerts;
-        milling.SiteId = message.Milling.SiteId;
-        milling.TimestampLocal = message.Milling.TimestampLocal;
-        milling.TimestampUtc = message.Milling.TimestampUtc;
-        milling.MachineBlockage = message.Milling.MachineBlockage;
-        milling.BlockageCause = message.Milling.BlockageCause;
-        milling.LastMaintenance = message.Milling.LastMaintenance;
+        if (batch.ItemProduced < batch.ItemQuantity && !batch.isCompleted)
+        {
+            // Il batch è ancora in produzione e non è completato. Lo restituiamo.
+            return batch;
+        }
+        else
+        {
+            // Il batch è già completato o ha ItemProduced >= ItemQuantity.
+            // Lo marchiamo come completato (se non lo è già) e lo rimuoviamo dalla coda.
+            if (!batch.isCompleted)
+            {
+                batch.isCompleted = true;
+                await _batchService.UpdateAsync(batch); // Aggiorna lo stato nel DB
+                Console.WriteLine($"Batch {batch.Id} marked as completed.");
+            }
+            else
+            {
+                Console.WriteLine($"Batch {batch.Id} is already completed.");
+            }
 
-        return milling;
-    }
-
-    private TestLine? ProcessTestLine(ReceivedData message)
-    {
-        if (message?.TestLine == null) return null;
-
-        var tl = new TestLine();
-        tl.Id = Guid.NewGuid();
-        tl.BatchId = inProductionBatch.Id;
-        tl.TestResult = message.TestLine.TestResult;
-        tl.BoilerPressure = message.TestLine.BoilerPressure;
-        tl.BoilerTemperature = message.TestLine.BoilerTemperature;
-        tl.EnergyConsumption = message.TestLine.EnergyConsumption;
-        tl.SiteId = message.TestLine.SiteId;
-        tl.TimestampLocal = message.TestLine.TimestampLocal;
-        tl.TimestampUtc = message.TestLine.TimestampUtc;
-        tl.MachineBlockage = message.TestLine.MachineBlockage;
-        tl.BlockageCause = message.TestLine.BlockageCause;
-        tl.LastMaintenance = message.TestLine.LastMaintenance;
-
-        return tl;
+            await _batchQueueService.DequeueAsync(batch.Id); // Rimuovi il batch completato dalla coda.
+            // Cerchiamo il prossimo batch valido nella coda.
+            return await GetBatch(); // Chiamata ricorsiva
+        }
     }
 
     public async Task ProcessTelemetryMessage(ReceivedData message)
     {
         // troviamo il batch su cui lavorare    (previously called workingBatch)
-        inProductionBatch = await GetBatch();
+        Batch? inProductionBatch = await GetBatch();
+        Console.WriteLine("chiamata 1");
 
-        if (inProductionBatch != null)
+        if (inProductionBatch == null)
         {
+            Console.WriteLine("No active batch found to process telemetry. Exiting ProcessTelemetryMessage.");
+
             return;
         }
 
-        var assemblyLine = new AssemblyLine();
-        var lathe = new Lathe();
-        var milling = new Milling();
-        var testLine = new TestLine();
+
+        // Se siamo arrivati fino a qui, 'inProductionBatch' non è null, quindi possiamo procedere
+        var assemblyLine = ProcessAssemblyLine(message, inProductionBatch.Id, inProductionBatch.SiteId);
+        var lathe = ProcessLathe(message, inProductionBatch.Id, inProductionBatch.SiteId);
+        var milling = ProcessMilling(message, inProductionBatch.Id, inProductionBatch.SiteId);
+        var testLine = ProcessTestLine(message, inProductionBatch.Id, inProductionBatch.SiteId);
 
 
-        // completiamo le istanze 
-        if (inProductionBatch != null)
+        // Salva i dati di produzione nel database.
+        // Controlla che le istanze restituite da ProcessX siano effettivamente non null prima di inserire.
+        if (assemblyLine != null)
         {
-            assemblyLine = ProcessAssemblyLine(message);
-            lathe = ProcessLathe(message);
-            milling = ProcessMilling(message);
-            testLine = ProcessTestLine(message);
-
-            inProductionBatch = await CheckBatch(inProductionBatch);
+            await _assemblyLineService.InsertAsync(assemblyLine);
+            Console.WriteLine($"AssemblyLine inserted for Batch {inProductionBatch.Id}.");
         }
 
-
-        if (assemblyLine != null)
-            await _alService.InsertAsync(assemblyLine);
-
         if (lathe != null)
+        {
             await _latheService.InsertAsync(lathe);
+            Console.WriteLine($"Lathe inserted for Batch {inProductionBatch.Id}.");
+        }
 
         if (milling != null)
+        {
             await _millingService.InsertAsync(milling);
+            Console.WriteLine($"Milling inserted for Batch {inProductionBatch.Id}.");
+        }
 
         if (testLine != null)
-            await _tlService.InsertAsync(testLine);
+        {
+            await _testLineService.InsertAsync(testLine);
+            Console.WriteLine($"TestLine inserted for Batch {inProductionBatch.Id}.");
+        }
 
+        inProductionBatch = await CheckBatch(inProductionBatch);
+
+        // Se CheckBatch ha completato il batch precedente e restituito un nuovo batch (o null se la coda è finita), qui puoi loggarlo o fare ulteriori azioni.
+        Console.WriteLine($"Batch {inProductionBatch?.Id} updated/checked.");
+
+        //if (inProductionBatch != null)
+        //{
+        //    inProductionBatch.ItemProduced += /* valore basato su telemetria */;
+        //    if (inProductionBatch.ItemProduced >= inProductionBatch.ItemQuantity)
+        //    {
+        //        inProductionBatch.isCompleted = true;
+        //    }
+        //    await _batchService.UpdateAsync(inProductionBatch);
+        //}
+
+        // completiamo le istanze 
+        //if (inProductionBatch != null)
+        //{
+        //    assemblyLine = ProcessAssemblyLine(message);
+        //    lathe = ProcessLathe(message);
+        //    milling = ProcessMilling(message);
+        //    testLine = ProcessTestLine(message);
+
+        //    inProductionBatch = await CheckBatch(inProductionBatch);
+        //    Console.WriteLine("chiamata 2");
+        //}
+
+
+        //if (assemblyLine != null)
+        //    await _assemblyLineService.InsertAsync(assemblyLine);
+        //Console.WriteLine("chiamata 3");
+
+
+        //if (lathe != null)
+        //    await _latheService.InsertAsync(lathe);
+        //Console.WriteLine("chiamata 4");
+
+
+        //if (milling != null)
+        //    await _millingService.InsertAsync(milling);
+        //Console.WriteLine("chiamata 5");
+
+
+        //if (testLine != null)
+        //    await _testLineService.InsertAsync(testLine);
+        //Console.WriteLine("chiamata 6");
+
+        //  scrittura dei log su file
         string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         Directory.CreateDirectory(logPath);
 
@@ -161,55 +195,122 @@ public class BatchAssociationService
         string logEntry4 = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] TestLine associato:\n{testLine}\n\n";
 
         StringBuilder sb = new StringBuilder();
-        sb.Append(logEntry1);
-        sb.Append(logEntry2);
-        sb.Append(logEntry3);
-        sb.Append(logEntry4);
+        sb.Append($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Processing telemetry for Batch ID: {inProductionBatch?.Id}\n");
+        if (milling != null) sb.Append($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Milling associato:\n{JsonSerializer.Serialize(milling)}\n"); // Uso JsonSerializer per un output leggibile
+        if (lathe != null) sb.Append($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Lathe associato:\n{JsonSerializer.Serialize(lathe)}\n");
+        if (assemblyLine != null) sb.Append($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] AssemblyLine associato:\n{JsonSerializer.Serialize(assemblyLine)}\n");
+        if (testLine != null) sb.Append($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] TestLine associato:\n{JsonSerializer.Serialize(testLine)}\n\n");
 
         await File.AppendAllTextAsync(logFile, sb.ToString());
+        Console.WriteLine($"Telemetry processed and logged for Batch {inProductionBatch?.Id}."); // Log finale
+    }
+
+
+
+    private AssemblyLine? ProcessAssemblyLine(ReceivedData message, Guid batchId, Guid siteId)
+    {
+        if (message?.AssemblyLine == null) return null;
+
+        // TODO: per tutte le istanze capire se serve o meno mantenere i campi isFirst e isLast
+        var assemblyLine = new AssemblyLine 
+        {
+            Id = Guid.NewGuid(),
+            BatchId = batchId,
+            AverageStationTime = message.AssemblyLine.AverageStationTime,
+            OperatorsNumber = message.AssemblyLine.OperatorsNumber,
+            Faults = message.AssemblyLine.Faults,
+            SiteId = siteId,
+            TimestampLocal = message.AssemblyLine.TimestampLocal,
+            TimestampUtc = message.AssemblyLine.TimestampUtc,
+            MachineBlockage = message.AssemblyLine.MachineBlockage,
+            BlockageCause = message.AssemblyLine.BlockageCause,
+            LastMaintenance = message.AssemblyLine.LastMaintenance
+        };
+
+        return assemblyLine;
+    }
+
+    private Lathe? ProcessLathe(ReceivedData message, Guid batchId, Guid siteId)
+    {
+        if (message?.Lathe == null) return null;
+
+        var lathe = new Lathe {
+            Id = Guid.NewGuid(),
+            BatchId = batchId,
+            MachineState = message.Lathe.MachineState,
+            Rpm = message.Lathe.Rpm,
+            SpindleTemperature = message.Lathe.SpindleTemperature,
+            CompletedItemsQuantity = message.Lathe.CompletedItemsQuantity,
+            SiteId = siteId,
+            TimestampLocal = message.Lathe.TimestampLocal,
+            TimestampUtc = message.Lathe.TimestampUtc,
+            MachineBlockage = message.Lathe.MachineBlockage,
+            BlockageCause = message.Lathe.BlockageCause,
+            LastMaintenance = message.Lathe.LastMaintenance
+        };
+
+        return lathe;
+    }
+
+    private Milling? ProcessMilling(ReceivedData message, Guid batchId, Guid siteId)
+    {
+        if (message?.Milling == null) return null;
+
+        var milling = new Milling {
+            Id = Guid.NewGuid(),
+            BatchId = batchId,
+            CycleDuration = message.Milling.CycleDuration,
+            CuttingDepth = message.Milling.CuttingDepth,
+            Vibration = message.Milling.Vibration,
+            UserAlerts = message.Milling.UserAlerts,
+            SiteId = siteId,
+            TimestampLocal = message.Milling.TimestampLocal,
+            TimestampUtc = message.Milling.TimestampUtc,
+            MachineBlockage = message.Milling.MachineBlockage,
+            BlockageCause = message.Milling.BlockageCause,
+            LastMaintenance = message.Milling.LastMaintenance
+        };
+
+        return milling;
+    }
+
+    private TestLine? ProcessTestLine(ReceivedData message, Guid batchId, Guid siteId)
+    {
+        if (message?.TestLine == null) return null;
+
+        var testLine = new TestLine {
+            Id = Guid.NewGuid(),
+            BatchId = batchId,
+            TestResult = message.TestLine.TestResult,
+            BoilerPressure = message.TestLine.BoilerPressure,
+            BoilerTemperature = message.TestLine.BoilerTemperature,
+            EnergyConsumption = message.TestLine.EnergyConsumption,
+            SiteId = siteId,
+            TimestampLocal = message.TestLine.TimestampLocal,
+            TimestampUtc = message.TestLine.TimestampUtc,
+            MachineBlockage = message.TestLine.MachineBlockage,
+            BlockageCause = message.TestLine.BlockageCause,
+            LastMaintenance = message.TestLine.LastMaintenance
+        };
+
+        return testLine;
     }
 
     // TODO: capire se posso cancellare o meno il fatto che deve ritornare il batch, essendo globale potrebbe non servire ritornare, fare test
-    private async Task<Batch> CheckBatch(Batch inProductionBatch)   //  previously called workBatch
+    private async Task<Batch?> CheckBatch(Batch inProductionBatch)   //  previously called workBatch
     {
-        inProductionBatch.ItemProduced++;
+        inProductionBatch.ItemProduced = (inProductionBatch.ItemProduced ?? 0) + 1;
 
         if (inProductionBatch.ItemProduced >= inProductionBatch.ItemQuantity)
         {
             inProductionBatch.isCompleted = true;
             await _batchService.UpdateAsync(inProductionBatch);
-            inProductionBatch = await GetBatch();
+            Console.WriteLine($"Batch {inProductionBatch.Id} completed and updated in DB.");
+
+            var nextBatch = await GetBatch();
+            Console.WriteLine($"Batch {inProductionBatch.Id} ItemProduced incremented to {inProductionBatch.ItemProduced}.");
         }
 
         return inProductionBatch;
-    }
-
-    private async Task<Batch> GetBatch()
-    {
-        var firstBatch = await _batchQueueService.GetFirstBatchUuidAsync();
-        var batch = new Batch();
-
-        if (firstBatch.HasValue)
-        {
-            batch = await _batchService.GetByIdAsync(firstBatch.Value);
-
-            if (batch.ItemProduced < batch.ItemQuantity)
-            {
-                if (!batch.isCompleted)
-                    return batch;
-
-                batch.isCompleted = true;
-                await _batchService.UpdateAsync(batch);
-            }
-        }
-        else
-            return batch;
-
-
-        // se a questo punto la funzione non ha ritornato vuol dire che il batch è completato ma
-        // è ancora dentro la coda, quindi lo tolgo dalla coda e poi vado di ricorsione per 
-        // trovare un batch non completo
-        await _batchQueueService.DequeueAsync(batch.Id);
-        return await GetBatch();
     }
 }

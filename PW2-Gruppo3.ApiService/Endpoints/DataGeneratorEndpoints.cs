@@ -23,22 +23,42 @@ public static class DataGeneratorEndpoints
         return builder;
     }
 
-    private static async Task<Results<Ok<ReceivedData>, NoContent>> ReceiveTelemetryAsync(ReceivedData data, BatchAssociationService batchAssociationService)
+    private static async Task<IResult> ReceiveTelemetryAsync(
+        [FromBody]ReceivedData data, 
+        BatchAssociationService batchAssociationService)
     {
+        // Configura le opzioni di deserializzazione
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { /* i tuoi converter qui */ }
+        };
+
         // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedMessage) e il messaggio inviato (DataGenerator.Models)
-        await batchAssociationService.ProcessTelemetryMessage(data); 
+        try
+        {
+            await batchAssociationService.ProcessTelemetryMessage(data);
 
-        // Creo il percorso per il file di log
-        //string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-        //Directory.CreateDirectory(logPath);
-        
-        //string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
-        //string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-        //string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
-        
-        //await File.AppendAllTextAsync(logFile, logEntry);
+            //  ABBIAMO VISTO CHE FUNZIONA E MOMENTANEAMENTE DISATTIVATO, MA POI IN PROD VA DE-COMMENTATO
+            // Creo il percorso per il file di log
+            string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+            Directory.CreateDirectory(logPath);
 
-        return TypedResults.Ok(data);
+            string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
+            string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
+
+            await File.AppendAllTextAsync(logFile, logEntry);
+
+            return Results.Ok();
+        }
+        catch (Exception ex) 
+        {
+            // Logga l'eccezione
+            Console.WriteLine($"Error processing telemetry: {ex}");
+            // Restituisci un BadRequest con un messaggio di errore o un StatusCode 500
+            return Results.BadRequest("Error processing telemetry data."); // O Results.StatusCode(500);
+        }
     }
 
     // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedData) e il messaggio inviato (DataGenerator.Message)
