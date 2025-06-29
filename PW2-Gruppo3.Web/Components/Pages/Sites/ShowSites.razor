@@ -1,0 +1,51 @@
+@page "/sites"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+@inject SitesApiClient SiteService
+
+<h3 class="mb-3">Siti</h3>
+
+<a href="/addSite" class="btn btn-success">Aggiungi sito</a>
+
+<table class="table table-striped table-hover table-bordered mt-4">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Nome</th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (Sites.Count() == 0)
+    {
+        <tr>
+            <td colspan="5">Nessun sito presente</td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var site in Sites)
+        {
+            <tr>
+                <td>@site.Id</td>
+                <td>@site.Name</td>
+                <td>
+                    <a href="/removeSite" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+                    <a href="/editSite" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
+                </td>
+            </tr>
+        }
+    }
+    
+
+    </tbody>
+</table>
+
+@code {
+    public IEnumerable<Site> Sites = new List<Site>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Sites = await SiteService.GetAllAsync();
+    }
+}

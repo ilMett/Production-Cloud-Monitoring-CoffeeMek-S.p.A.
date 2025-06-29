@@ -1,4 +1,5 @@
-using PW2_Gruppo3.Web;
+
+using PW2_Gruppo3.Web.Clients;
 using PW2_Gruppo3.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,44 @@ builder.AddRedisOutputCache("cache");
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Registro gli ApiClient con i relativi prefissi
+
+builder.Services.AddHttpClient<AssemblyLineApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<BatchApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<CustomerApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<LatheApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<MillingApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<SitesApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
+builder.Services.AddHttpClient<TestLineApiClient>(client =>
+{
+    client.BaseAddress = new("http://localhost:5580");
+});
+
 
 var app = builder.Build();
 

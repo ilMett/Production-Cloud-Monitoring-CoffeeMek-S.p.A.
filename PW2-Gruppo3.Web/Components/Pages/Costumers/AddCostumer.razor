@@ -1,0 +1,45 @@
+@page "/addcustomer"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+@inject CustomerApiClient CustomerService
+@inject NavigationManager Nav
+
+<h3 class="mt-3 mb-3">Aggiungi un nuovo cliente</h3>
+
+<EditForm Model="@newCustomer" OnValidSubmit="InsertCustomer" class="w-50 mt-3">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mt-3">
+        <label class="form-label">Company</label>
+        <InputText class="form-control" @bind-Value="newCustomer.Company" placeholder="Company name" />
+        <ValidationMessage For="@(() => newCustomer.Company)" />
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">VAT Code</label>
+        <InputText class="form-control" @bind-Value="newCustomer.VatCode" placeholder="VAT Code" />
+        <ValidationMessage For="@(() => newCustomer.VatCode)" />
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">IBAN</label>
+        <InputText class="form-control" @bind-Value="newCustomer.Iban" placeholder="IBAN"/>
+        <ValidationMessage For="@(() => newCustomer.Iban)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Aggiungi Cliente</button>
+    <a href="/customers" class="btn btn-secondary mt-3">Annulla</a>
+    
+</EditForm>
+
+@code {
+    
+    public Customer newCustomer = new Customer();
+
+    public async Task InsertCustomer()
+    {
+        var success = await CustomerService.CreateAsync(newCustomer);
+        Nav.NavigateTo("/customers");
+    }
+}

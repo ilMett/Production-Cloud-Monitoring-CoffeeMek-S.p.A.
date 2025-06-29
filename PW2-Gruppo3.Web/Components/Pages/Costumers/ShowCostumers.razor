@@ -1,9 +1,13 @@
-@page "/showCostumers"
+@page "/customers"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+
+@inject CustomerApiClient CustomerService
+
 <h3 class="mb-3">Lista Clienti</h3>
 
-<a href="/addCostumer" class="btn btn-success">Aggiungi cliente</a>
+<a href="/addcustomer" class="btn btn-success">Aggiungi cliente</a>
 
-<!--TODO: Implementa parte grafica che visualizza la tabella con la lista dei clienti e le aziona edit, remove ecc-->
 <table class="table table-striped table-hover table-bordered mt-4">
     <thead>
     <tr>
@@ -15,20 +19,41 @@
     </tr>
     </thead>
     <tbody>
-    <tr>
-        <td>1</td>
-        <td>Alpha Tech Srl</td>
-        <td>IT12345678901</td>
-        <td>IT60X0542811101000000123456</td>
-        <td>
-            <a href="/removeCostumer" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
-            <a href="/editCostumer" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
-        </td>
-    </tr>
+    @if (Customers.Count() == 0)
+    {
+        <tr>
+            <td colspan="5">Nessun cliente presente</td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var customer in Customers)
+        {
+            <tr>
+                <td>@customer.Id</td>
+                <td>@customer.Company</td>
+                <td>@customer.VatCode</td>
+                <td>@customer.Iban</td>
+                <td>
+                    <a href="/removecustomer" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+                    <a href="/editcustomer" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
+                </td>
+            </tr>
+        }
+    }
+    
+
     </tbody>
 </table>
 
 
 @code {
-    //TODO: metodo che recupera da db tutti i clienti presenti
+    
+    public IEnumerable<Customer> Customers = new List<Customer>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Customers = await CustomerService.GetAllAsync();
+    }
+
 }
