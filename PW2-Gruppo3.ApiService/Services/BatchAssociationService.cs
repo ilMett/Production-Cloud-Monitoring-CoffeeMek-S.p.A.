@@ -69,25 +69,16 @@ public class BatchAssociationService
             // Il batch è ancora in produzione e non è completato. Lo restituiamo.
             return batch;
         }
-        else
-        {
-            // Il batch è già completato o ha ItemProduced >= ItemQuantity.
-            // Lo marchiamo come completato (se non lo è già) e lo rimuoviamo dalla coda.
-            if (!batch.isCompleted)
-            {
-                batch.isCompleted = true;
-                await _batchService.UpdateAsync(batch); // Aggiorna lo stato nel DB
-                Console.WriteLine($"Batch {batch.Id} marked as completed.");
-            }
-            else
-            {
-                Console.WriteLine($"Batch {batch.Id} is already completed.");
-            }
+        // Il batch è già completato o ha ItemProduced >= ItemQuantity.
+        // Lo marchiamo come completato (se non lo è già) e lo rimuoviamo dalla coda.
 
-            await _batchQueueService.DequeueAsync(batch.Id); // Rimuovi il batch completato dalla coda.
-            // Cerchiamo il prossimo batch valido nella coda.
-            return await GetBatch(); // Chiamata ricorsiva
-        }
+        batch.isCompleted = true;
+        await _batchService.UpdateAsync(batch); // Aggiorna lo stato nel DB
+        Console.WriteLine($"Batch {batch.Id} marked as completed. And removed from queue.");
+        await _batchQueueService.DequeueAsync(batch.Id); // Rimuovi il batch completato dalla coda.
+        // Cerchiamo il prossimo batch valido nella coda.
+        return await GetBatch(); // Chiamata ricorsiva
+        
     }
 
     public async Task ProcessTelemetryMessage(ReceivedData message)
@@ -98,9 +89,7 @@ public class BatchAssociationService
 
         if (inProductionBatch == null)
         {
-            Console.WriteLine("No active batch found to process telemetry. Exiting ProcessTelemetryMessage.");
-
-            return;
+            throw new Exception("DIOC il batch è null, la funzione GetBatch non va un cazz.");
         }
 
 
