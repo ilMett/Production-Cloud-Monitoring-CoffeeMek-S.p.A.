@@ -1,0 +1,76 @@
+@page "/addbatch"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+@inject BatchApiClient BatchService
+@inject CustomerApiClient CustomerService
+@inject SitesApiClient SiteService
+@inject NavigationManager NavigationManager
+
+<h3>Crea Nuovo Lotto</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="@batchDto" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label for="itemQuantity" class="form-label">Quantità Items:</label>
+                <InputNumber id="itemQuantity" class="form-control" @bind-Value="batchDto.ItemQuantity" />
+                <ValidationMessage For="@(() => batchDto.ItemQuantity)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="customer" class="form-label">Cliente:</label>
+                <InputSelect id="customer" class="form-select" @bind-Value="batchDto.CustomerId">
+                    <option value="">Seleziona un cliente...</option>
+                    @foreach (var customer in customers)
+                    {
+                        <option value="@customer.Id">@customer.Company</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => batchDto.CustomerId)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="site" class="form-label">Sito:</label>
+                <InputSelect id="site" class="form-select" @bind-Value="batchDto.SiteId">
+                    <option value="">Seleziona un sito...</option>
+                    @foreach (var site in sites)
+                    {
+                        <option value="@site.Id">@site.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => batchDto.SiteId)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Crea Lotto</button>
+            <a href="/" class="btn btn-secondary">Annulla</a>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Batch batchDto = new();
+    private List<Customer> customers = new();
+    private List<Site> sites = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = (await CustomerService.GetAllAsync()).ToList();
+        sites = (await SiteService.GetAllAsync()).ToList();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await BatchService.CreateAsync(batchDto);
+            NavigationManager.NavigateTo("/batches");
+        }
+        catch (Exception ex)
+        {
+            // Gestione errori (potrebbe essere implementata con un componente Toast o Alert)
+            Console.WriteLine($"Errore durante la creazione del lotto: {ex.Message}");
+        }
+    }
+}
