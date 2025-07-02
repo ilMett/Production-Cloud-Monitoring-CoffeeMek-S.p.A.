@@ -1,0 +1,92 @@
+@page "/batches"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+@inject BatchApiClient BatchService
+
+<h3>Lotti</h3>
+
+<a href="/addbatch" class="btn btn-success">Aggiungi Lotto</a>
+
+<div class="d-flex">
+    <div class="card">
+        <div class="card-header">
+            Italia
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Special title treatment</h5>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Brasile
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Special title treatment</h5>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Vietnam
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Special title treatment</h5>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+        </div>
+    </div>
+</div>
+<table class="table table-striped table-hover table-bordered mt-4">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Quantità</th>
+        <th>Cliente</th>
+        <th>Sito</th>
+        <th>Stato</th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (Batches.Count() == 0)
+    {
+        <tr>
+            <td colspan="5">Nessun lotto presente</td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var batch in Batches)
+        {
+            <tr>
+                <td>@batch.Id</td>
+                <td>@batch.ItemQuantity</td>
+                <td>@batch.Customer</td>
+                <td>@batch.Site</td>
+                <td class="text-success">Ok</td>
+                <td>
+                    <a href="/removebatch" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+                    <a href="/batchDetail" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
+                </td>
+            </tr>
+        }
+    }
+
+
+    </tbody>
+</table>
+
+@code {
+
+    public IEnumerable<Batch> Batches = new List<Batch>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Batches = await BatchService.GetAllAsync();
+    }
+
+}

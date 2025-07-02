@@ -1,0 +1,36 @@
+@page "/addSite"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
+@inject SitesApiClient SiteService
+@inject NavigationManager Nav
+
+<h3 class="mt-3 mb-3">Aggiungi un nuovo sito</h3>
+
+<EditForm Model="@newSite" @FormName="CreateSite" OnValidSubmit="InsertSite" class="w-50 mt-3">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mt-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="newSite.Name" placeholder="Site name" />
+        <ValidationMessage For="@(() => newSite.Name)" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary mt-3">Aggiungi Sito</button>
+    <a href="/customers" class="btn btn-secondary mt-3">Annulla</a>
+</EditForm>
+
+
+
+@code {
+    
+    public Site newSite = new Site();
+    
+    
+    public async Task InsertSite()
+    {
+        await SiteService.CreateAsync(newSite);
+        Nav.NavigateTo("/customers");
+    }
+}

@@ -6,7 +6,7 @@
 
 <h3 class="mt-3 mb-3">Aggiungi un nuovo cliente</h3>
 
-<EditForm Model="@newCustomer" @FormName="AddCostumer" OnValidSubmit="InsertCustomer" class="w-50 mt-3">
+<EditForm Model="@newCustomer" @FormName="CreateCustomer" OnValidSubmit="InsertCustomer" class="w-50 mt-3">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -30,16 +30,18 @@
 
     <button type="submit" class="btn btn-primary mt-3">Aggiungi Cliente</button>
     <a href="/customers" class="btn btn-secondary mt-3">Annulla</a>
-    
 </EditForm>
+
+
 
 @code {
     
     public Customer newCustomer = new Customer();
-
+    
+    
     public async Task InsertCustomer()
     {
-        var success = await CustomerService.CreateAsync(newCustomer);
+        await CustomerService.CreateAsync(newCustomer);
         Nav.NavigateTo("/customers");
     }
 }
