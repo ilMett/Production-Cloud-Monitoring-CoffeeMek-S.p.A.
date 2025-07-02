@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using PW2_Gruppo3.ApiService.Data;
 using PW2_Gruppo3.DataGenerator;
 using PW2_Gruppo3.Models;
@@ -11,6 +12,7 @@ namespace PW2_Gruppo3.ApiService.Services;
 //  site: 3fa85f64-5717-4562-b3fc-2c963f66afa6
 public class BatchAssociationService
 {
+    private readonly ProductionMonitoringContext _context;
     private readonly IBatchQueueService _batchQueueService;
     private readonly IGenericService<Batch> _batchService;
     private readonly IGenericService<AssemblyLine> _assemblyLineService;
@@ -24,7 +26,8 @@ public class BatchAssociationService
         IGenericService<AssemblyLine> assemblyLineService, 
         IGenericService<Lathe> latheService, 
         IGenericService<Milling> millingService, 
-        IGenericService<TestLine> testLineService
+        IGenericService<TestLine> testLineService,
+        ProductionMonitoringContext context
         )
     {
         _batchQueueService = batchQueueService;
@@ -33,52 +36,67 @@ public class BatchAssociationService
         _latheService = latheService;
         _millingService = millingService;
         _testLineService = testLineService;
+        _context = context;
     }
 
+    // private async Task<Batch?> GetBatch()
+    // {
+    //     var firstBatchId = await _batchQueueService.GetFirstBatchUuidAsync();
+    //
+    //     if (!firstBatchId.HasValue)
+    //     {
+    //         Console.WriteLine("Batch queue is empty. No batch in production.");
+    //         // Non c'è nessun batch da elaborare. Restituisci null o un batch di default
+    //         return null; // Indica che nessun batch è attualmente in produzione
+    //     }
+    //
+    //     // Cerchiamo il batch nel database usando l'ID dalla coda
+    //     var batch = await _batchService.GetByIdAsync(firstBatchId.Value);
+    //
+    //     // Gestiamo il caso in cui il batch non sia stato trovato nel database
+    //     if (batch == null)
+    //     {
+    //         Console.WriteLine($"Batch with ID {firstBatchId.Value} not found in database. Removing from queue.");
+    //
+    //         // Se il batch non esiste nel DB, lo rimuoviamo dalla coda per evitare cicli infiniti o errori futuri.
+    //         await _batchQueueService.DequeueAsync(firstBatchId.Value);
+    //
+    //         // Richiamiamo GetBatch() per cercare il prossimo batch valido nella coda.
+    //         return await GetBatch(); // Chiamata ricorsiva per trovare il prossimo batch
+    //     }
+    //
+    //     // A questo punto, 'batch' è garantito non essere null.
+    //     // Ora puoi controllare le sue proprietà.
+    //
+    //     if (batch.ItemProduced < batch.ItemQuantity && !batch.isCompleted)
+    //     {
+    //         // Il batch è ancora in produzione e non è completato. Lo restituiamo.
+    //         return batch;
+    //     }
+    //     // Il batch è già completato o ha ItemProduced >= ItemQuantity.
+    //     // Lo marchiamo come completato (se non lo è già) e lo rimuoviamo dalla coda.
+    //
+    //     batch.isCompleted = true;
+    //     await _batchService.UpdateAsync(batch); // Aggiorna lo stato nel DB
+    //     Console.WriteLine($"Batch {batch.Id} marked as completed. And removed from queue.");
+    //     await _batchQueueService.DequeueAsync(batch.Id); // Rimuovi il batch completato dalla coda.
+    //     // Cerchiamo il prossimo batch valido nella coda.
+    //     return await GetBatch(); // Chiamata ricorsiva
+    //     
+    // }
     private async Task<Batch?> GetBatch()
     {
-        var firstBatchId = await _batchQueueService.GetFirstBatchUuidAsync();
-
-        if (!firstBatchId.HasValue)
-        {
-            Console.WriteLine("Batch queue is empty. No batch in production.");
-            // Non c'è nessun batch da elaborare. Restituisci null o un batch di default
-            return null; // Indica che nessun batch è attualmente in produzione
-        }
-
-        // Cerchiamo il batch nel database usando l'ID dalla coda
-        var batch = await _batchService.GetByIdAsync(firstBatchId.Value);
-
-        // Gestiamo il caso in cui il batch non sia stato trovato nel database
-        if (batch == null)
-        {
-            Console.WriteLine($"Batch with ID {firstBatchId.Value} not found in database. Removing from queue.");
-
-            // Se il batch non esiste nel DB, lo rimuoviamo dalla coda per evitare cicli infiniti o errori futuri.
-            await _batchQueueService.DequeueAsync(firstBatchId.Value);
-
-            // Richiamiamo GetBatch() per cercare il prossimo batch valido nella coda.
-            return await GetBatch(); // Chiamata ricorsiva per trovare il prossimo batch
-        }
-
-        // A questo punto, 'batch' è garantito non essere null.
-        // Ora puoi controllare le sue proprietà.
-
-        if (batch.ItemProduced < batch.ItemQuantity && !batch.isCompleted)
-        {
-            // Il batch è ancora in produzione e non è completato. Lo restituiamo.
-            return batch;
-        }
-        // Il batch è già completato o ha ItemProduced >= ItemQuantity.
-        // Lo marchiamo come completato (se non lo è già) e lo rimuoviamo dalla coda.
-
-        batch.isCompleted = true;
-        await _batchService.UpdateAsync(batch); // Aggiorna lo stato nel DB
-        Console.WriteLine($"Batch {batch.Id} marked as completed. And removed from queue.");
-        await _batchQueueService.DequeueAsync(batch.Id); // Rimuovi il batch completato dalla coda.
-        // Cerchiamo il prossimo batch valido nella coda.
-        return await GetBatch(); // Chiamata ricorsiva
+        var batch = await _context.Batches.FirstOrDefaultAsync(b => b.isCompleted == false);
+        if (batch == null) return null;
         
+        if (batch.ItemProduced < batch.ItemQuantity)
+            return batch;
+        else
+        {
+            batch.isCompleted = true;
+            await _context.SaveChangesAsync();
+        }
+        return await GetBatch();
     }
 
     public async Task ProcessTelemetryMessage(ReceivedData message)
