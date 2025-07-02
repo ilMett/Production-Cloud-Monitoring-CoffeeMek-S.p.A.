@@ -11,6 +11,13 @@ public class Program
 {
     private static System.Timers.Timer _timer;
     private static int _generationCount = 0;
+    public static HttpClient CreateClient()
+    {
+        return new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(10000)
+        };
+    }
 
     public static async Task Main(string[] args)
     {
@@ -19,8 +26,9 @@ public class Program
         while (!cts.Token.IsCancellationRequested)
         {
             var data = GenerateMessageData();
-
-            using var client = new HttpClient();
+            
+            
+            var client =  CreateClient();
             var response = await client.PostAsJsonAsync(
                 "http://localhost:5580/api/v1/telemetry/machines",
                 data,
