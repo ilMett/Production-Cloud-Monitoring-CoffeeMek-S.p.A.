@@ -1,50 +1,249 @@
 @page "/batchDetail"
+@using PW2_Gruppo3.Models
+@using PW2_Gruppo3.Web.Clients
 @inject NavigationManager Nav
+@inject BatchApiClient BatchApiClient
 
-<h3>BatchDetail</h3>
+<style>
+    .table-fixed {
+        table-layout: fixed;
+    }
+    
+    .table-fixed th,
+    .table-fixed td {
+        width: 20%;
+        word-wrap: break-word;
+    }
+</style>
 
-<table id="milling" class="table table-striped table-hover table-bordered mt-4">
+<h3>Dettaglio sito @Batch.Id</h3>
+
+@{
+    var millingData = GenerateMillingData();
+    var latheData = GenerateLatheData();
+    var assemblyData = GenerateAssemblyData();
+    var testData = GenerateTestData();
+}
+
+
+
+<table id="milling" class="table table-striped table-hover table-bordered table-fixed mt-4">
     <thead>
     <tr>
-        <th>Avviso</th>
+        <th>Macchina</th>
         <th>Sito</th>
         <th>Timestamp</th>
+        <th>Profondità Taglio</th>
+        <th>Vibration</th>
     </tr>
     </thead>
+    <tbody>
+    @foreach (var data in millingData)
+    {
+        <tr>
+            <td>@data.MachineName</td>
+            <td>@data.Site</td>
+            <td>@data.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@data.CutDepth mm</td>
+            <td>@data.Vibration Hz</td>
+        </tr>
+    }
+    </tbody>
 </table>
 
-<table id="lathe" class="table table-striped table-hover table-bordered mt-4">
+<table id="lathe" class="table table-striped table-hover table-bordered table-fixed mt-4">
     <thead>
     <tr>
-        <th>Avviso</th>
+        <th>Macchina</th>
         <th>Sito</th>
         <th>Timestamp</th>
+        <th>RPM</th>
+        <th>Temperatura mandrino</th>
     </tr>
     </thead>
+    <tbody>
+    @foreach (var data in latheData)
+    {
+        <tr>
+            <td>@data.MachineName</td>
+            <td>@data.Site</td>
+            <td>@data.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@data.RPM</td>
+            <td>@data.Temperature°C</td>
+        </tr>
+    }
+    </tbody>
 </table>
 
-<table id="assemblyLine" class="table table-striped table-hover table-bordered mt-4">
+<table id="assemblyLine" class="table table-striped table-hover table-bordered table-fixed mt-4">
     <thead>
     <tr>
-        <th>Avviso</th>
+        <th>Macchina</th>
         <th>Sito</th>
         <th>Timestamp</th>
+        <th>Tempo medio stazionamento</th>
+        <th>Difetti</th>
     </tr>
     </thead>
+    <tbody>
+    @foreach (var data in assemblyData)
+    {
+        <tr>
+            <td>@data.MachineName</td>
+            <td>@data.Site</td>
+            <td>@data.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@data.StationTime sec</td>
+            <td>@data.DefectRate%</td>
+        </tr>
+    }
+    </tbody>
 </table>
 
-<table id="testLine" class="table table-striped table-hover table-bordered mt-4">
+<table id="testLine" class="table table-striped table-hover table-bordered table-fixed mt-4">
     <thead>
     <tr>
-        <th>Avviso</th>
+        <th>Macchina</th>
         <th>Sito</th>
         <th>Timestamp</th>
+        <th>Risultato</th>
+        <th>Energia Consumata</th>
     </tr>
     </thead>
+    <tbody>
+    @foreach (var data in testData)
+    {
+        <tr>
+            <td>@data.MachineName</td>
+            <td>@data.Site</td>
+            <td>@data.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@data.Result</td>
+            <td>@data.EnergyConsumption kWh</td>
+        </tr>
+    }
+    </tbody>
 </table>
 
 <a href="/batches" class="btn btn-primary">Indietro</a>
 
 @code {
+    [Parameter]
+    public Guid Id { get; set; }
     
+    public Batch Batch = new Batch();
+    public List<MillingData> millingDataList = new List<MillingData>();
+    public List<LatheData> latheDataList = new List<LatheData>();
+    public List<AssemblyData> assemblyDataList = new List<AssemblyData>();
+    public List<TestData> testDataList = new List<TestData>();
+    
+    private Random random = new Random();
+    private readonly string[] sites = { "Italia", "Brasile", "Vietnam" };
+    
+    protected override async Task OnInitializedAsync()
+    {
+        millingDataList = GenerateMillingData();
+        latheDataList = GenerateLatheData();
+        assemblyDataList = GenerateAssemblyData();
+        testDataList = GenerateTestData();
+        
+        await BatchApiClient.GetByIdAsync(Id);
+    }
+
+    private string GetRandomSite() => sites[random.Next(sites.Length)];
+    
+    private DateTime GetRandomTimestamp()
+    {
+        return DateTime.Now.AddMinutes(-random.Next(0, 60));
+    }
+
+    public class MillingData
+    {
+        public string MachineName { get; set; }
+        public string Site { get; set; }
+        public DateTime Timestamp { get; set; }
+        public double CutDepth { get; set; }
+        public double Vibration { get; set; }
+    }
+
+    public List<MillingData> GenerateMillingData()
+    {
+        return sites.Select(site => new MillingData
+        {
+            MachineName = $"Fresatrice-{random.Next(1, 10):D2}",
+            Site = site,
+            Timestamp = GetRandomTimestamp(),
+            CutDepth = Math.Round(random.NextDouble() * 3 + 1, 1),
+            Vibration = Math.Round(random.NextDouble() * 0.2 + 0.1, 2)
+        }).ToList();
+    }
+
+    public class LatheData
+    {
+        public string MachineName { get; set; }
+        public string Site { get; set; }
+        public DateTime Timestamp { get; set; }
+        public int RPM { get; set; }
+        public int Temperature { get; set; }
+    }
+
+    public List<LatheData> GenerateLatheData()
+    {
+        return sites.Select(site => new LatheData
+        {
+            MachineName = $"Tornio-{random.Next(1, 10):D2}",
+            Site = site,
+            Timestamp = GetRandomTimestamp(),
+            RPM = random.Next(1000, 1500),
+            Temperature = random.Next(40, 55)
+        }).ToList();
+    }
+
+    public class AssemblyData
+    {
+        public string MachineName { get; set; }
+        public string Site { get; set; }
+        public DateTime Timestamp { get; set; }
+        public int StationTime { get; set; }
+        public double DefectRate { get; set; }
+    }
+
+    public List<AssemblyData> GenerateAssemblyData()
+    {
+        return sites.Select(site => new AssemblyData
+        {
+            MachineName = $"Linea-{random.Next(1, 10):D2}",
+            Site = site,
+            Timestamp = GetRandomTimestamp(),
+            StationTime = random.Next(30, 60),
+            DefectRate = Math.Round(random.NextDouble() * 0.4, 2)
+        }).ToList();
+    }
+
+    public class TestData
+    {
+        public string MachineName { get; set; }
+        public string Site { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Result { get; set; }
+        public double EnergyConsumption { get; set; }
+    }
+
+    public List<TestData> GenerateTestData()
+    {
+        return sites.Select(site => new TestData
+        {
+            MachineName = $"Test-{random.Next(1, 10):D2}",
+            Site = site,
+            Timestamp = GetRandomTimestamp(),
+            Result = random.NextDouble() > 0.1 ? "Passato" : "Fallito",
+            EnergyConsumption = Math.Round(random.NextDouble() + 1, 1)
+        }).ToList();
+    }
+
+    public void ClearData()
+    {
+        millingDataList.Clear();
+        latheDataList.Clear();
+        assemblyDataList.Clear();
+        testDataList.Clear();
+    }
 }

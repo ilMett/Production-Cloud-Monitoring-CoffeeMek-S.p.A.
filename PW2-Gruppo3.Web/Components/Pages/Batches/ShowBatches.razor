@@ -7,36 +7,34 @@
 
 <a href="/addbatch" class="btn btn-success">Aggiungi Lotto</a>
 
-<div class="d-flex">
+<div class="d-flex mt-4">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header bg-success text-white">
             Italia
         </div>
-        <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+        <div class="card-body ">
+            <h5 class="card-title">Stato lotti Italia:</h5>
+            <p class="card-text">Il lotto non presenta problemi</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
+    <div class="card mx-2">
+        <div class="card-header  bg-success text-white">
             Brasile
         </div>
         <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
+            <h5 class="card-title">Stato lotti Brasile:</h5>
+            <p class="card-text">Il lotto non presenta problemi</p>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">
+        <div class="card-header bg-success text-white">
             Vietnam
         </div>
         <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
+            <h5 class="card-title">Stato lotti Vietnam:</h5>
+            <p class="card-text">Il lotto non presenta problemi</p>
         </div>
     </div>
 </div>
@@ -52,41 +50,49 @@
     </tr>
     </thead>
     <tbody>
-    @if (Batches.Count() == 0)
-    {
-        <tr>
-            <td colspan="5">Nessun lotto presente</td>
-        </tr>
-    }
-    else
-    {
-        @foreach (var batch in Batches)
-        {
-            <tr>
-                <td>@batch.Id</td>
-                <td>@batch.ItemQuantity</td>
-                <td>@batch.Customer</td>
-                <td>@batch.Site</td>
-                <td class="text-success">Ok</td>
-                <td>
-                    <a href="/removebatch" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
-                    <a href="/batchDetail" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
-                </td>
-            </tr>
-        }
-    }
-
-
-    </tbody>
+    <tr>
+        <td>8f4e2d1c-9b3a-4d7e-8f5a-6c2b1d3e4f5a</td>
+        <td>1500</td>
+        <td>Tecnomeccanica SpA</td>
+        <td>Italia</td>
+        <td class="text-success">Ok</td>
+        <td>
+            <a href="/removebatch" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+            <a href="/batchDetail" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Detail</a>
+        </td>
+    </tr>
+    <tr>
+        <td>2a1b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p</td>
+        <td>2300</td>
+        <td>Industrias Brasil Ltda</td>
+        <td>Brasile</td>
+        <td class="text-success">Ok</td>
+        <td>
+            <a href="/removebatch" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+            <a href="/batchDetail/2a1b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Detail</a>
+        </td>
+    </tr>
+    <tr>
+        <td>7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f</td>
+        <td>1800</td>
+        <td>Vietnam Manufacturing Co</td>
+        <td>Vietnam</td>
+        <td class="text-success">Ok</td>
+        <td>
+            <a href="/removebatch" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+            <a href="/batchDetail/7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Detail</a>
+        </td>
+    </tr>
+</tbody>
 </table>
 
 @code {
 
-    public IEnumerable<Batch> Batches = new List<Batch>();
+    // public IEnumerable<Batch> Batches = new List<Batch>();
 
-    protected override async Task OnInitializedAsync()
-    {
-        Batches = await BatchService.GetAllAsync();
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     Batches = await BatchService.GetAllAsync();
+    // }
 
 }
