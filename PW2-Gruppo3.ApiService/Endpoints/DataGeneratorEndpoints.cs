@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using PW2_Gruppo3.ApiService.Converters;
 using PW2_Gruppo3.ApiService.Services;
 using PW2_Gruppo3.DataGenerator;
+using PW2_Gruppo3.Models;
 using System.Text.Json;
 
 namespace PW2_Gruppo3.ApiService;
@@ -9,7 +12,7 @@ public static class DataGeneratorEndpoints
 {
     public static IEndpointRouteBuilder MapDataGeneratorEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/telemetry")// Raggruppo tutte le api inierenti allo stesso gruppo, non serve riscrivere tutto l'url
+        var group = builder.MapGroup("/api/v1/telemetry")// Raggruppo tutte le api ineerenti allo stesso gruppo, non serve riscrivere tutto l'url
             .WithTags("DataGenerator")
             .WithOpenApi();
         
@@ -20,23 +23,49 @@ public static class DataGeneratorEndpoints
         return builder;
     }
 
-    private static async Task<Results<Ok<Message>, NoContent>> ReceiveTelemetryAsync(Message message)
+    private static async Task<IResult> ReceiveTelemetryAsync(
+        [FromBody]ReceivedData data, 
+        BatchAssociationService batchAssociationService)
     {
-        //  integrazione nell'endpoint della chiamata al service BatchAssociationService
-        var service = new BatchAssociationService();
-        service.ProcessTelemetryMessage(message); // Elabora e istanzia oggetti
+        // Configura le opzioni di deserializzazione
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { /* i tuoi converter qui */ }
+        };
 
-        // Creo il percorso per il file di log
-        string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-        Directory.CreateDirectory(logPath);
-        
-        string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
-        string jsonMessage = JsonSerializer.Serialize(message, new JsonSerializerOptions { WriteIndented = true });
-        string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
-        
-        await File.AppendAllTextAsync(logFile, logEntry);
+        // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedMessage) e il messaggio inviato (DataGenerator.Models)
+        try
+        {
+            await batchAssociationService.ProcessTelemetryMessage(data);
 
-        return TypedResults.Ok(message);
+            //  ABBIAMO VISTO CHE FUNZIONA E MOMENTANEAMENTE DISATTIVATO, MA POI IN PROD VA DE-COMMENTATO
+            // Creo il percorso per il file di log
+            string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+            Directory.CreateDirectory(logPath);
+
+            string logFile = Path.Combine(logPath, $"telemetry_log_{DateTime.Now:yyyy-MM-dd}.txt");
+            string jsonMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Messaggio ricevuto:\n{jsonMessage}\n\n";
+
+            await File.AppendAllTextAsync(logFile, logEntry);
+
+            return Results.Ok();
+        }
+        catch (Exception ex) 
+        {
+            // Logga l'eccezione
+            Console.WriteLine($"Error processing telemetry: {ex}");
+            // Restituisci un BadRequest con un messaggio di errore o un StatusCode 500
+            return Results.BadRequest("Error processing telemetry data."); // O Results.StatusCode(500);
+        }
+    }
+
+    // TODO: fare il CAST fra il messaggio ricevuto (Models.ReceivedData) e il messaggio inviato (DataGenerator.Message)
+    private static async Task<ReceivedData> CastReceivedMessage(Message message, ReceivedData receivedData)
+    {
+        //  e qui dentro in qualche modo usiamo i converters creati
+        return receivedData;
     }
 
 

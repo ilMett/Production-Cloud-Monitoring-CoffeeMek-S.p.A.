@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PW2_Gruppo3.ApiService.Data;
 
@@ -11,9 +12,11 @@ using PW2_Gruppo3.ApiService.Data;
 namespace PW2Gruppo3.ApiService.Migrations
 {
     [DbContext(typeof(ProductionMonitoringContext))]
-    partial class ProductionMonitoringContextModelSnapshot : ModelSnapshot
+    [Migration("20250627203632_RemovedSomeNavigationProps")]
+    partial class RemovedSomeNavigationProps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -347,7 +350,7 @@ namespace PW2Gruppo3.ApiService.Migrations
             modelBuilder.Entity("PW2_Gruppo3.Models.Batch", b =>
                 {
                     b.HasOne("PW2_Gruppo3.Models.Customer", "Customer")
-                        .WithMany("Batches")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -405,11 +408,6 @@ namespace PW2Gruppo3.ApiService.Migrations
                     b.Navigation("Millings");
 
                     b.Navigation("TestLines");
-                });
-
-            modelBuilder.Entity("PW2_Gruppo3.Models.Customer", b =>
-                {
-                    b.Navigation("Batches");
                 });
 
             modelBuilder.Entity("PW2_Gruppo3.Models.Site", b =>

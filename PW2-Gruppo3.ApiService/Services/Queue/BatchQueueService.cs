@@ -7,11 +7,12 @@ namespace PW2_Gruppo3.ApiService.Services;
 public interface IBatchQueueService
 {
     Task EnqueueAsync(Guid uuid);
-    Task<Guid?> DequeueAsync();
+    Task<Guid?> DequeueAsync(Guid uuid);
     Task<IEnumerable<Guid>> GetAllAsync();
     Task ReorderAsync(IEnumerable<Guid> newOrder);
     Task<int> GetCountAsync();
     Task InitializeFromBatchQueueAsync();
+    Task<Guid?> GetFirstBatchUuidAsync();
 }
 
 public class BatchQueueService : IBatchQueueService
@@ -37,18 +38,10 @@ public class BatchQueueService : IBatchQueueService
 
             foreach (var batchItem in batchItems)
             {
-                var queueItem = new BatchQueueItem()
-                {
-                    Id = Guid.NewGuid(),
-                    BatchUuid = batchItem.BatchUuid,
-                    Position = batchItem.Position,
-                    CreatedAt = batchItem.CreatedAt
-                };
-
-                _context.BatchQueueItems.Add(queueItem);
+                // _context.BatchQueueItems.Add(batchItem);
             }
 
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync();
         }
         finally
         {
@@ -72,8 +65,17 @@ public class BatchQueueService : IBatchQueueService
                 Position = maxPosition + 1,
                 CreatedAt = DateTime.UtcNow
             };
-
+            
             _context.BatchQueueItems.Add(queueItem);
+            
+            string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+            Directory.CreateDirectory(logPath);
+
+            string logFile = Path.Combine(logPath, $"queue_log_{DateTime.Now:yyyy-MM-dd}.txt");
+            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Lotto inserito nella coda:\n{queueItem}\n\n";
+
+            await File.AppendAllTextAsync(logFile, logEntry);
+
             await _context.SaveChangesAsync();
         }
         finally
@@ -82,14 +84,13 @@ public class BatchQueueService : IBatchQueueService
         }
     }
 
-    public async Task<Guid?> DequeueAsync()
+    public async Task<Guid?> DequeueAsync(Guid uuid)
     {
         await _semaphore.WaitAsync();
         try
         {
             var item = await _context.BatchQueueItems
-                .OrderBy(q => q.Position)
-                .FirstOrDefaultAsync();
+                .FindAsync(uuid);
 
             if (item == null)
                 return null;
@@ -153,6 +154,24 @@ public class BatchQueueService : IBatchQueueService
     public async Task<int> GetCountAsync()
     {
         return await _context.BatchQueueItems.CountAsync();
+    }
+    
+    public async Task<Guid?> GetFirstBatchUuidAsync()
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            var firstBatchId = await _context.BatchQueueItems
+                .OrderBy(q => q.Position)
+                .Select(q => (Guid?)q.BatchUuid) 
+                .FirstOrDefaultAsync();
+
+            return firstBatchId;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
 }

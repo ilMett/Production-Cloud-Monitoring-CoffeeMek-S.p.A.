@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PW2_Gruppo3.Models;
@@ -14,5 +15,6 @@ public class Site
     public string Name { get; set; } = string.Empty;
 
     // Proprietà di navigazione: In un sito possono essere processati molti lotti.
-    public ICollection<Batch> Batches { get; set; } = [];
+    [JsonIgnore]
+    public ICollection<Batch>? Batches { get; set; } = [];
 }

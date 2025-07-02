@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry;
 using PW2_Gruppo3.ApiService;
+using PW2_Gruppo3.ApiService.Converters;
 using PW2_Gruppo3.ApiService.Crud;
 using PW2_Gruppo3.ApiService.Data;
 using PW2_Gruppo3.ApiService.Endpoints.Crud;
@@ -20,6 +21,21 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNameCaseInsensitive = true; // Mantieni questa opzione
+
+    // Aggiungi qui i tuoi converter personalizzati
+    options.SerializerOptions.Converters.Add(new StringToDecimalConverter());
+    options.SerializerOptions.Converters.Add(new StringToIntConverter());
+    options.SerializerOptions.Converters.Add(new StringToBoolConverter());
+    // Aggiungi gli altri converter se necessari (es. StringToGuidConverter)
+});
+
+// BatchQueue services, Init of Batch queue
+builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
+builder.Services.AddHostedService<QueueInitializerHostedService>();
+
 // Register API services
 builder.Services.AddScoped<IGenericService<AssemblyLine>, GenericService<AssemblyLine>>();
 builder.Services.AddScoped<IGenericService<Batch>, GenericService<Batch>>();
@@ -29,9 +45,7 @@ builder.Services.AddScoped<IGenericService<Milling>, GenericService<Milling>>();
 builder.Services.AddScoped<IGenericService<Site>, GenericService<Site>>();
 builder.Services.AddScoped<IGenericService<TestLine>, GenericService<TestLine>>();
 
-// BatchQueue services, Init of Batch queue
-builder.Services.AddScoped<IBatchQueueService, BatchQueueService>();
-builder.Services.AddHostedService<QueueInitializerHostedService>();
+builder.Services.AddScoped<BatchAssociationService>();
 
 
 builder.Services.AddDbContext<ProductionMonitoringContext>(options =>

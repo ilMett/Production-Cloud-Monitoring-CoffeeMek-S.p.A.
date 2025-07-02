@@ -44,9 +44,15 @@ namespace PW2_Gruppo3.ApiService.Endpoints.Crud
             return batch is null ? Results.NotFound() : Results.Ok(batch);
         }
 
-        private static async Task<IResult> CreateBatch(Batch batch, IGenericService<Batch> batchService)
+        private static async Task<IResult> CreateBatch(Batch batch, IGenericService<Batch> batchService, IBatchQueueService batchQueueService)
         {
+            Console.WriteLine("dai dai ti prego passo 1");
+
+            await batchQueueService.EnqueueAsync(batch.Id);
+            Console.WriteLine("passo 2");
+
             await batchService.InsertAsync(batch);
+            Console.WriteLine("passo 3");
 
             return Results.Ok(batch);
         }
